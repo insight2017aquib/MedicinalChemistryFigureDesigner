@@ -85,6 +85,7 @@ MedicinalChemistryFigureDesigner/
 ├── README.md                  # Project overview (this file)
 ├── PROJECT_CONTEXT.md         # Canonical context for LLMs and coding agents
 ├── AGENTS.md                  # Auto-discovery pointer (Cursor, Grok, Codex, etc.)
+├── specs/                     # LLM reasoning specs for FSL generation
 ├── CLAUDE.md                  # Claude Skill entry point
 ├── instructions.md            # End-to-end workflow
 │

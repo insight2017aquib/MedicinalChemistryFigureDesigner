@@ -20,3 +20,7 @@ python scripts/render_example.py
 - Run `pytest` after code changes
 
 Full details: [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)
+
+## Generating FSL
+
+If asked to create or edit Figure Specification Language documents, read [specs/README.md](./specs/README.md) first, then [specs/PROMPTING_GUIDE.md](./specs/PROMPTING_GUIDE.md) and [specs/EXAMPLES.md](./specs/EXAMPLES.md).

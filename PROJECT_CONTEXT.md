@@ -111,6 +111,7 @@ Low-level modules (`compile_figure`, `FigureCompiler`, `SVGRenderer`, etc.) exis
 | Task | Location |
 |------|----------|
 | LLM / agent context (this file) | `PROJECT_CONTEXT.md` |
+| **Generate or validate FSL (LLM specs)** | `specs/` — start at `specs/README.md` |
 | Auto-discovery pointer | `AGENTS.md` |
 | Human overview | `README.md` |
 | Architecture diagrams | `docs/Architecture.md` |
@@ -121,6 +122,7 @@ Low-level modules (`compile_figure`, `FigureCompiler`, `SVGRenderer`, etc.) exis
 | FSL engine | `src/figure_agent/fsl/` |
 | FSL schema docs | `fsl/schema.yaml`, `fsl/validator.md` |
 | FSL example | `examples/minimal_figure.yaml` |
+| FSL semantics for LLMs | `specs/FSL_SPEC.md`, `specs/PROMPTING_GUIDE.md` |
 | Ontology | `src/figure_agent/ontology/` |
 | Compiler | `src/figure_agent/compiler/` |
 | Renderers | `src/figure_agent/renderers/` |

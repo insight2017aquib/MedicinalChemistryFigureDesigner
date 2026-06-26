@@ -26,6 +26,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/). Versioning alig
 
 - (none yet)
 
+---
+
+## [v0.7.1] — LLM Specification Layer
+
+### Added
+
+- `specs/` — LLM reasoning specifications for FSL generation (11 documents)
+- `specs/README.md`, `FSL_SPEC.md`, `FIGURE_GRAMMAR.md`, `FIELD_REFERENCE.md`, `OBJECT_MODEL.md`, `LAYOUT_GUIDE.md`, `STYLING_GUIDE.md`, `VALIDATION_RULES.md`, `COMMON_ERRORS.md`, `EXAMPLES.md`, `PROMPTING_GUIDE.md`
+
+### Changed
+
+- `PROJECT_CONTEXT.md`, `AGENTS.md`, `README.md` — route LLMs to `specs/` for FSL authoring
+
+### Notes
+
+- Documentation derived from `src/figure_agent/fsl/`, `compiler/`, `ontology/`, `renderers/`
+- Not user/API/developer docs — semantic layer for Claude and future LLMs
+
 ### Changed
 
 - (none yet)

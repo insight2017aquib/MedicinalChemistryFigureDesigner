@@ -82,6 +82,7 @@ Track planned milestones from repository scaffold through full Scientific Figure
 - [x] Public functions: `generate_fsl`, `validate_fsl`, `compile`, `render`, `render_svg`, `export`, `health`, `version`
 - [x] Pluggable renderer registry via `register_renderer()`
 - [x] Unit tests: valid/invalid FSL, compile, render, export, error handling
+- [x] `specs/` — LLM specification layer for FSL generation (semantics, grammar, examples, prompting)
 
 ### v0.8 — Knowledge Base (Planned)
 
