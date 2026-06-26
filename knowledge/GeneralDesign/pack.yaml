@@ -1,0 +1,22 @@
+pack_format_version: "1.0.0"
+id: general-design
+semantic_version: "0.1.0"
+name: General Design
+description: Cross-domain design conventions placeholder pack.
+domain: general
+status: draft
+
+provenance:
+  maintainer: platform
+  organization: null
+  source_refs: []
+  license: null
+  created_at: "2026-06-26"
+  updated_at: "2026-06-26"
+  review_status: unreviewed
+  notes: Pack scaffold only. Populate entries from maintainer-approved sources.
+
+extends: null
+depends_on: []
+aliases: {}
+entries: []

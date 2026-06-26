@@ -1,0 +1,45 @@
+pack_format_version: "1.0.0"
+id: derived
+semantic_version: "1.1.0"
+name: Derived Pack
+description: Test derived pack inheriting from base.
+domain: test
+status: draft
+
+provenance:
+  maintainer: test
+  created_at: "2026-01-02"
+  updated_at: "2026-01-02"
+  review_status: unreviewed
+
+extends:
+  id: base
+  version_constraint: "^1.0.0"
+
+depends_on:
+  - id: base
+    version_constraint: ">=1.0.0,<2.0.0"
+
+aliases:
+  content_slot:
+    - slot
+
+entries:
+  - id: conv-derived
+    kind: pattern
+    title: Derived pattern slot
+    summary: Child-only scaffold entry.
+    tags: [scaffold]
+    provenance:
+      curator: test
+      source_ref: internal://test/derived
+    content: {}
+  - id: conv-base
+    kind: convention
+    title: Overridden base convention
+    summary: Child override for inheritance testing.
+    tags: [override]
+    provenance:
+      curator: test
+      source_ref: internal://test/derived-override
+    content: {}

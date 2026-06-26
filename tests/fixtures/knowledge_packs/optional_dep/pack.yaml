@@ -1,0 +1,22 @@
+pack_format_version: "1.0.0"
+id: optional-dep
+semantic_version: "0.1.0"
+name: Optional Dependency Pack
+description: Test pack with optional missing dependency.
+domain: test
+status: draft
+
+provenance:
+  maintainer: test
+  created_at: "2026-01-03"
+  updated_at: "2026-01-03"
+  review_status: unreviewed
+
+extends: null
+depends_on:
+  - id: missing-pack
+    version_constraint: ">=1.0.0"
+    optional: true
+
+aliases: {}
+entries: []

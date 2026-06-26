@@ -1,0 +1,158 @@
+# Knowledge Pack Manifest Schema (v1.0.0)
+#
+# Machine-readable schema reference for pack.yaml manifests.
+# Experts add curated content by editing pack.yaml files under knowledge/
+# without modifying Figure Agent source code.
+
+pack_format_version:
+  type: string
+  required: true
+  const: "1.0.0"
+  description: Schema format version for the manifest file.
+
+id:
+  type: string
+  required: true
+  pattern: "^[a-z][a-z0-9-]*$"
+  description: Stable pack identifier (kebab-case).
+
+semantic_version:
+  type: string
+  required: true
+  pattern: "^\\d+\\.\\d+\\.\\d+"
+  description: Semantic version of the pack content.
+
+name:
+  type: string
+  required: true
+
+description:
+  type: string
+  required: false
+  default: ""
+
+domain:
+  type: string
+  required: true
+  description: Domain category (e.g. general, medicinal-chemistry).
+
+status:
+  type: string
+  required: false
+  enum: [draft, published, deprecated, archived]
+  default: draft
+
+provenance:
+  type: object
+  required: true
+  fields:
+    maintainer:
+      type: string
+      required: true
+    organization:
+      type: string
+      required: false
+    source_refs:
+      type: array
+      items: string
+      description: URIs or repository paths documenting content sources.
+    license:
+      type: string
+      required: false
+    created_at:
+      type: date
+      required: true
+    updated_at:
+      type: date
+      required: true
+    review_status:
+      type: string
+      enum: [unreviewed, in_review, approved, rejected]
+      default: unreviewed
+    notes:
+      type: string
+      required: false
+
+extends:
+  type: [string, object, "null"]
+  required: false
+  description: Parent pack id or inheritance object for overlay inheritance.
+  object_fields:
+    id:
+      type: string
+      required: true
+    version_constraint:
+      type: string
+      required: false
+
+depends_on:
+  type: array
+  required: false
+  default: []
+  items:
+    type: object
+    fields:
+      id:
+        type: string
+        required: true
+      version_constraint:
+        type: string
+        required: true
+      optional:
+        type: boolean
+        default: false
+
+aliases:
+  type: object
+  required: false
+  default: {}
+  description: Canonical term to synonym list mapping.
+  additionalProperties:
+    type: array
+    items: string
+
+entries:
+  type: array
+  required: false
+  default: []
+  items:
+    type: object
+    fields:
+      id:
+        type: string
+        required: true
+      kind:
+        type: string
+        enum: [convention, pattern, terminology, constraint, reference]
+      title:
+        type: string
+        required: true
+      summary:
+        type: string
+        default: ""
+      tags:
+        type: array
+        items: string
+      provenance:
+        type: object
+        required: true
+        fields:
+          curator:
+            type: string
+            required: true
+          source_ref:
+            type: string
+            required: true
+          retrieved_at:
+            type: date
+            required: false
+          confidence:
+            type: string
+            required: false
+          notes:
+            type: string
+            required: false
+      content:
+        type: object
+        required: false
+        description: Domain payload defined by experts; opaque to core pipeline.

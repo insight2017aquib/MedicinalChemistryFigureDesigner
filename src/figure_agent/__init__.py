@@ -28,6 +28,7 @@ from figure_agent.ontology import (
     graph_to_json,
     graph_to_yaml,
 )
+from figure_agent.knowledge import KnowledgePackRegistry, KnowledgePackValidator
 from figure_agent.mcp import MCPHandlers, MCPServerConfig, create_mcp_server
 from figure_agent.renderers import (
     GPTImagePromptBuilder,
@@ -49,6 +50,8 @@ __all__ = [
     "GPTImagePromptBuilder",
     "GPTImagePromptRenderer",
     "GPTImageRenderer",
+    "KnowledgePackRegistry",
+    "KnowledgePackValidator",
     "Label",
     "MCPHandlers",
     "MCPServerConfig",
