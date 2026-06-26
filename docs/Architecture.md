@@ -313,6 +313,7 @@ sequenceDiagram
 | Figure compiler | `src/figure_agent/compiler/` | v0.5 |
 | SVG renderer | `src/figure_agent/renderers/` | v0.6 |
 | Figure Agent API | `src/figure_agent/api/` | v0.7 |
+| LLM project context | `PROJECT_CONTEXT.md` + `AGENTS.md` | v0.7+ |
 | Knowledge packs | `knowledge/` | v0.8 |
 | FSL schema (complete) | `fsl/schema.yaml` | v0.8 |
 | BioRender MCP renderer | `register_renderer("biorender", ...)` | v0.9 |

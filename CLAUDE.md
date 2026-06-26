@@ -1,37 +1,64 @@
 # Claude Skill Entry Point
 
-## Purpose
+## Shared Context
 
-Serve as the primary context file loaded when this project is used as a Claude Skill. Directs Claude to the correct modules, workflows, and constraints without embedding scientific content.
+**Read [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md) first.** It contains project identity, constraints, the public API, module routing, and build commands for all agents.
 
-## Scope
+This file adds Claude Skill–specific routing only.
 
-**In scope:**
+---
 
-- Skill identity and high-level behavior
-- Module routing (which file to consult for which task)
-- Hard constraints (no fabricated science, no invented journal rules)
-- Workflow summary linking to `instructions.md`
+## Skill Identity
 
-**Out of scope:**
+- **Name:** MedicinalChemistryFigureDesigner
+- **Purpose:** Interactive figure design for medicinal chemistry and molecular biology review articles
+- **Trigger phrases:** "design a figure", "create FSL", "compile figure", "render SVG", "figure specification"
 
-- Detailed style specifications (see `styles/`)
-- Prompt text (see `prompts/`)
-- Validation criteria (see `validation/`)
+---
 
-## Sections to be Completed
+## Behavioral Constraints
 
-- [ ] Skill name, description, and trigger phrases
-- [ ] Module routing table (task → file path)
-- [ ] Behavioral constraints and guardrails
-- [ ] Default workflow steps
-- [ ] Error-handling and fallback behavior when modules are incomplete
-- [ ] References to `instructions.md` and subdirectory README files
+- Never invent biological facts, chemical structures, or journal guidelines
+- Route user-supplied content only; escalate when domain packs in `knowledge/` are empty
+- Use the public API (`figure_agent.compile`, `render`, `export`) for pipeline operations
+- Output traceable FSL specifications, not ad-hoc figure descriptions
 
-## TODO
+---
 
-- [ ] Define when to load `styles/` vs `templates/` vs `prompts/`
-- [ ] Document prohibition on inventing scientific or journal-specific content
-- [ ] Add escalation path when user requests content not yet defined in repo
-- [ ] Specify output format expectations (Markdown briefs, SVG specs, etc.)
-- [ ] Align with Claude Skill packaging requirements once finalized
+## Module Routing
+
+| User task | Consult |
+|-----------|---------|
+| End-to-end workflow | [instructions.md](./instructions.md) |
+| Initial brief | [prompts/initial-brief.md](./prompts/initial-brief.md) |
+| Layout generation | [prompts/layout-generation.md](./prompts/layout-generation.md) |
+| Style selection | [styles/](./styles/) |
+| Template selection | [templates/](./templates/) |
+| Rule application | [rules/](./rules/) |
+| Pre-export checks | [validation/](./validation/) |
+| Revision pass | [prompts/revision-pass.md](./prompts/revision-pass.md) |
+| Export instructions | [prompts/export-instructions.md](./prompts/export-instructions.md) |
+| FSL / API / rendering | [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md) |
+
+---
+
+## Default Workflow
+
+1. Intake brief → `prompts/initial-brief.md`
+2. Select template and styles → `templates/`, `styles/`
+3. Generate FSL → `generate_fsl()` or manual YAML in `examples/`
+4. Validate and compile → `validate_fsl()`, `compile()`
+5. Render preview → `render_svg()` or `export()`
+6. Apply rules and validation → `rules/`, `validation/`
+7. Revision loop → `prompts/revision-pass.md`
+8. Export → `prompts/export-instructions.md`
+
+---
+
+## Fallback Behavior
+
+When a module is incomplete (placeholder Markdown):
+
+- State clearly what is defined vs pending
+- Do not fill gaps with fabricated scientific or journal content
+- Offer to proceed with neutral placeholders (as in `examples/minimal_figure.yaml`)

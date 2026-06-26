@@ -83,6 +83,8 @@ Full architecture with module diagrams: [docs/Architecture.md](docs/Architecture
 ```
 MedicinalChemistryFigureDesigner/
 ├── README.md                  # Project overview (this file)
+├── PROJECT_CONTEXT.md         # Canonical context for LLMs and coding agents
+├── AGENTS.md                  # Auto-discovery pointer (Cursor, Grok, Codex, etc.)
 ├── CLAUDE.md                  # Claude Skill entry point
 ├── instructions.md            # End-to-end workflow
 │
@@ -345,6 +347,18 @@ Validation and compile/render failures return structured responses by default. P
 2. Review [CLAUDE.md](CLAUDE.md) for Claude Skill behavior and module routing
 3. Consult [docs/DesignPrinciples.md](docs/DesignPrinciples.md) for platform constraints
 4. See [docs/Contributing.md](docs/Contributing.md) before making changes
+
+### For LLMs and coding agents
+
+| File | Purpose |
+|------|---------|
+| [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | **Primary context** — identity, constraints, public API, module routing, build commands |
+| [AGENTS.md](AGENTS.md) | **Auto-discovery** — loaded by Cursor, Grok, Codex, VS Code, and other agents at session start |
+| [CLAUDE.md](CLAUDE.md) | Claude Skill–specific workflow routing |
+
+Agents should read `PROJECT_CONTEXT.md` before making changes. `AGENTS.md` points to it automatically.
+
+Verify discovery (Grok): `grok inspect` should list `AGENTS.md` at the repo root.
 
 ---
 
