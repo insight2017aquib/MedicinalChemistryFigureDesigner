@@ -32,6 +32,27 @@ Format based on [Keep a Changelog](https://keepachangelog.com/). Versioning alig
 
 ---
 
+## [v0.6] — Minimal SVG Renderer
+
+### Added
+
+- `src/figure_agent/renderers/` — abstract `Renderer`, `SVGRenderer`, layout, geometry, styling, exceptions
+- `scripts/render_example.py` — FSL → compile → render → `output/example.svg` demo
+- Unit tests: `test_svg_renderer.py`, `test_renderer_layout.py`, `test_renderer_geometry.py`
+
+### Changed
+
+- Package version `0.6.0`
+- `README.md`, `docs/Architecture.md`, `docs/DevelopmentRoadmap.md` — renderer pipeline documentation
+
+### Notes
+
+- Proof-of-concept renderer only: monochrome palette, no icons, gradients, or scientific assets
+- Pipeline validated end-to-end: FSL → Compiler → Ontology → SVGRenderer → SVG file
+- Future renderers inherit from `Renderer` without modifying FSL, ontology, or compiler
+
+---
+
 ## [v0.5] — Figure Compilation Engine
 
 ### Added
@@ -46,7 +67,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/). Versioning alig
 
 ### Notes
 
-- Pipeline: FSL → Compiler → Ontology → Renderer (planned)
+- Pipeline: FSL → Compiler → Ontology → Renderer (implemented in v0.6)
 - No rendering, biology, or external integrations
 
 ---

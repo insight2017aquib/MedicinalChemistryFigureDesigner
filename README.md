@@ -2,7 +2,7 @@
 
 A modular platform for designing publication-quality scientific figures for medicinal chemistry and molecular biology review articles. Built as a Claude Skill with a staged pipeline from user brief to validated, export-ready figures.
 
-**Current status:** v0.5 — Figure compilation engine (FSL → ontology)
+**Current status:** v0.6 — Minimal SVG renderer (FSL → ontology → SVG)
 
 **Repository:** [github.com/insight2017aquib/MedicinalChemistryFigureDesigner](https://github.com/insight2017aquib/MedicinalChemistryFigureDesigner)
 
@@ -17,7 +17,7 @@ MedicinalChemistryFigureDesigner is a **scientific figure platform**, not a cont
 - A **Figure Specification Language (FSL)** engine (`src/figure_agent/fsl/`) for parsing, validating, and serializing figure specifications
 - A **Scientific figure ontology** (`src/figure_agent/ontology/`) for typed entities and relationships
 - A **Figure compiler** (`src/figure_agent/compiler/`) that transforms FSL documents into ontology graphs
-
+- A **Minimal SVG renderer** (`src/figure_agent/renderers/`) that renders ontology graphs to SVG
 - **Knowledge packs** for domain-specific conventions (user-supplied content only)
 - A **staged pipeline** toward automated rendering, validation, and export
 
@@ -45,9 +45,9 @@ Review-article figures require consistent visual language, structural compliance
 | v0.3 | FSL engine | Complete |
 | v0.4 | Scientific figure ontology | Complete |
 | v0.5 | Figure compilation engine | Complete |
-| v0.6 | Knowledge base | Planned |
-| v0.7 | BioRender integration | Planned |
-| v0.8 | Image generation | Planned |
+| v0.6 | Minimal SVG renderer | Complete |
+| v0.7 | Knowledge base | Planned |
+| v0.8 | BioRender integration | Planned |
 | v0.9 | Validation engine | Planned |
 | v1.0 | Scientific Figure Agent | Planned |
 
@@ -62,7 +62,7 @@ flowchart TD
     A[Claude Skill] --> B[Figure Specification Language]
     B --> C[Compiler]
     C --> O[Ontology]
-    O --> R[Renderer]
+    O --> R[SVG Renderer]
     R --> E[Scientific Validation]
     E --> F[Publication Export]
 ```
@@ -90,9 +90,13 @@ MedicinalChemistryFigureDesigner/
 │   ├── fsl/                   # FSL parser, validator, serializer, models
 │   ├── ontology/              # Entity models, relationships, registry
 │   ├── compiler/              # FSL-to-ontology compilation
+│   ├── renderers/             # SVG and future renderer backends
 │   └── core/                  # Constants and shared types
 │
-├── tests/                     # Unit tests for FSL and ontology
+├── scripts/                   # CLI demos
+│   └── render_example.py      # FSL → SVG pipeline demo
+│
+├── tests/                     # Unit tests for FSL, ontology, compiler, renderer
 ├── pyproject.toml             # Python project configuration
 │
 ├── fsl/                       # FSL schema documentation
@@ -169,12 +173,24 @@ The ontology sits between FSL and future renderers.
 | `compiler/context.py` | Compilation state, ID registry, namespacing |
 | `compiler/validator.py` | Orphan detection, missing refs, graph consistency |
 
+### SVG Renderer (v0.6 — executable)
+
+| Component | Purpose |
+|-----------|---------|
+| `renderers/base.py` | Abstract `Renderer` interface |
+| `renderers/svg_renderer.py` | Monochrome proof-of-concept SVG output |
+| `renderers/layout.py` | Simple vertical panel layout |
+| `renderers/geometry.py` | Rectangles, arrows, label placement |
+
 ```mermaid
 flowchart LR
     FSL[FSL Document] --> Compiler[FigureCompiler]
     Compiler --> Ontology[Ontology Graph]
-    Ontology --> Renderer[Future Renderer]
+    Ontology --> SVG[SVGRenderer]
+    SVG --> File[output/example.svg]
 ```
+
+Future renderers (`BioRenderRenderer`, `GPTImageRenderer`, etc.) will inherit from `Renderer`.
 
 ---
 
@@ -197,15 +213,23 @@ graph = compile_figure(figure)
 print(f"Compiled {len(graph.entities)} entities")
 ```
 
+### Render to SVG
+
+```bash
+python scripts/render_example.py
+```
+
+Produces `output/example.svg` with panel boundaries, labels, boxes, and arrows.
+
 ---
 
 ## Planned Integrations
 
 | Integration | Milestone | Description |
 |-------------|-----------|-------------|
-| BioRender MCP | v0.6 | Illustration assets via Model Context Protocol |
-| Image generation | v0.7 | Ontology-to-render pipeline for raster and vector output |
-| Validation engine | v0.8 | Automated FSL and rule compliance checking |
+| BioRender MCP | v0.8 | `BioRenderRenderer` for illustration assets via Model Context Protocol |
+| Advanced renderers | v0.9+ | `GPTImageRenderer`, `PowerPointRenderer`, and other `Renderer` backends |
+| Validation engine | v0.9 | Automated FSL and rule compliance checking |
 | Publication export | v1.0 | End-to-end packaging with metadata and format compliance |
 
 ---

@@ -15,7 +15,7 @@ Describe the end-to-end architecture of the MedicinalChemistryFigureDesigner pla
 
 **Out of scope:**
 
-- Rendering implementation
+- Per-backend rendering implementation details (BioRender, image generation APIs)
 - Scientific content or domain knowledge
 - Journal-specific export requirements
 
@@ -40,6 +40,7 @@ flowchart TD
         B2[src/figure_agent/fsl/]
         C2[src/figure_agent/compiler/]
         O2[src/figure_agent/ontology/]
+        R2[src/figure_agent/renderers/]
         E
         G[styles/]
         H[rules/]
@@ -53,9 +54,10 @@ flowchart TD
     B --> C2
     C2 --> O2
     O --> O2
+    O --> R2
+    R --> R2
 
     subgraph external [Planned Integrations]
-        R
         F
     end
 
@@ -119,11 +121,11 @@ Typed representation of figure components and their relationships. The ontology 
 
 ```mermaid
 flowchart LR
-    FSL[FSL Figure] --> Map[Future FSL-to-Ontology mapping]
-    Map --> Graph[OntologyGraph]
+    FSL[FSL Figure] --> Compiler[FigureCompiler]
+    Compiler --> Graph[OntologyGraph]
     Graph --> Registry[EntityRegistry]
     Registry --> Val[ontology/validator.py]
-    Val -->|pass| Renderer[Future Renderer]
+    Val -->|pass| Renderer[Renderer implementations]
 ```
 
 The ontology defines **structure only** — no biological semantics, no rendering, no scientific validation.
@@ -150,11 +152,49 @@ flowchart LR
     Graph --> OV[ontology/validator.py]
 ```
 
-### 5. Renderer (Planned)
+### 5. Renderer
 
-**Location:** Planned external integration (v0.7+)
+**Implementation:** `src/figure_agent/renderers/` (v0.6)
 
-Rendering pipeline that converts ontology graphs into raster or vector figure assets. May integrate BioRender MCP (v0.6) and other backends.
+Converts compiled `OntologyGraph` instances into graphical output. All renderer backends share a common abstract interface so the pipeline remains backend-agnostic.
+
+| Module | Responsibility |
+|--------|----------------|
+| `base.py` | Abstract `Renderer`, `RenderConfig`, `RenderResult` |
+| `svg_renderer.py` | `SVGRenderer` — proof-of-concept monochrome SVG output |
+| `layout.py` | Simple automatic layout (vertical stacking, panel arrangement) |
+| `geometry.py` | Rectangles, arrows, centered label placement |
+| `styling.py` | Monochrome palette constants |
+| `exceptions.py` | `RenderError`, `LayoutError`, `SVGRenderError` |
+
+**v0.6 rendering scope** (intentionally minimal):
+
+- Rectangle and rounded rectangle
+- Text label (centered)
+- Straight arrow
+- Container box and panel boundary
+
+No gradients, shadows, icons, or scientific illustration assets.
+
+```mermaid
+flowchart LR
+    Graph[OntologyGraph] --> Layout[layout.py]
+    Layout --> Geom[geometry.py]
+    Geom --> SVG[svg_renderer.py]
+    SVG --> File[SVG document]
+```
+
+**Future renderer implementations** (inherit from `Renderer`):
+
+| Renderer | Target | Milestone |
+|----------|--------|-----------|
+| `BioRenderRenderer` | BioRender MCP assets | v0.8 |
+| `GPTImageRenderer` | Image generation API | v0.9+ |
+| `PowerPointRenderer` | Slide export | Future |
+| `MermaidRenderer` | Diagram syntax | Future |
+| `IllustratorRenderer` | Vector authoring tools | Future |
+
+Demo: `python scripts/render_example.py` writes `output/example.svg`.
 
 ### 6. Scientific Validation
 
@@ -237,10 +277,11 @@ sequenceDiagram
 | FSL engine | `src/figure_agent/fsl/` | v0.3 |
 | Figure ontology | `src/figure_agent/ontology/` | v0.4 |
 | Figure compiler | `src/figure_agent/compiler/` | v0.5 |
-| Knowledge packs | `knowledge/` | v0.6 |
-| FSL schema (complete) | `fsl/schema.yaml` | v0.6 |
-| BioRender MCP | External | v0.7 |
-| Image generation / renderer | External | v0.8 |
+| SVG renderer | `src/figure_agent/renderers/` | v0.6 |
+| Knowledge packs | `knowledge/` | v0.7 |
+| FSL schema (complete) | `fsl/schema.yaml` | v0.7 |
+| BioRender MCP renderer | External | v0.8 |
+| Advanced renderers (image gen, export) | `src/figure_agent/renderers/` | v0.9+ |
 | Validation engine | `validation/` + engine | v0.9 |
 | Full agent | `CLAUDE.md` + pipeline | v1.0 |
 

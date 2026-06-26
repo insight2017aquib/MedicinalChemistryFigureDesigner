@@ -29,9 +29,9 @@ Track planned milestones from repository scaffold through full Scientific Figure
 | v0.3 | FSL engine | Complete | Python package: parse, validate, serialize figure specifications |
 | v0.4 | Scientific figure ontology | Complete | Typed entities, relationships, registry, structural validation |
 | v0.5 | Figure compilation engine | Complete | FSL → ontology graph transformation |
-| v0.6 | Knowledge base | Planned | Populated knowledge packs with user-supplied domain content |
-| v0.7 | BioRender integration | Planned | MCP connector for illustration asset references |
-| v0.8 | Image generation | Planned | Ontology-to-render pipeline for figure assets |
+| v0.6 | Minimal SVG renderer | Complete | Ontology graph → monochrome SVG proof-of-concept |
+| v0.7 | Knowledge base | Planned | Populated knowledge packs with user-supplied domain content |
+| v0.8 | BioRender integration | Planned | MCP connector and `BioRenderRenderer` backend |
 | v0.9 | Validation engine | Planned | Automated validation against rules and FSL schema |
 | v1.0 | Scientific Figure Agent | Planned | End-to-end agent with full pipeline integration |
 
@@ -67,21 +67,25 @@ Track planned milestones from repository scaffold through full Scientific Figure
 - [x] Orphan slot and missing reference detection
 - [x] Unit tests: simple/multi-panel compile, layout mapping, graph consistency
 
-### v0.6 — Knowledge Base (Planned)
+### v0.6 — Minimal SVG Renderer (Complete)
+
+- [x] `src/figure_agent/renderers/` — abstract `Renderer`, `SVGRenderer`, layout, geometry, styling
+- [x] Simple vertical panel layout with constant spacing and centered labels
+- [x] Monochrome SVG output: rectangles, rounded rects, labels, straight arrows, panel boundaries
+- [x] Unit tests: SVG generation, geometry, label/arrow placement, empty and multi-panel graphs
+- [x] `scripts/render_example.py` — FSL → compile → render → `output/example.svg`
+
+### v0.7 — Knowledge Base (Planned)
 
 - [ ] Knowledge pack schema and metadata format
 - [ ] User-supplied content ingestion guidelines
 - [ ] Integration hooks in `prompts/` and `fsl/`
 
-### v0.7 — BioRender Integration (Planned)
+### v0.8 — BioRender Integration (Planned)
 
 - [ ] MCP server configuration
+- [ ] `BioRenderRenderer` inheriting from `Renderer`
 - [ ] Asset reference mapping in ontology entities
-
-### v0.8 — Image Generation (Planned)
-
-- [ ] Rendering backend selection
-- [ ] Ontology-to-render pipeline
 
 ### v0.9 — Validation Engine (Planned)
 
@@ -91,7 +95,7 @@ Track planned milestones from repository scaffold through full Scientific Figure
 ### v1.0 — Scientific Figure Agent (Planned)
 
 - [ ] Full pipeline orchestration in Claude Skill
-- [ ] End-to-end session workflow
+- [ ] End-to-end session workflow (brief → FSL → ontology → render → validate → export)
 
 ---
 
@@ -103,12 +107,22 @@ flowchart LR
     v02 --> v03[v0.3 FSL Engine]
     v03 --> v04[v0.4 Ontology]
     v04 --> v05[v0.5 Compiler]
-    v05 --> v08[v0.8 Image Gen]
-    v02 --> v06[v0.6 Knowledge]
-    v05 --> v07[v0.7 BioRender]
-    v07 --> v08
-    v06 --> v08
-    v05 --> v09[v0.9 Validation]
+    v05 --> v06[v0.6 SVG Renderer]
+    v02 --> v07[v0.7 Knowledge]
+    v06 --> v08[v0.8 BioRender]
+    v07 --> v09[v0.9 Validation]
     v08 --> v09
     v09 --> v10[v1.0 Agent]
 ```
+
+---
+
+## Pipeline (v0.6)
+
+The minimal SVG renderer validates the full architecture from specification to graphical output:
+
+```
+FSL → Compiler → Ontology → SVGRenderer → output/example.svg
+```
+
+Future renderer backends (`BioRenderRenderer`, `GPTImageRenderer`, `PowerPointRenderer`, etc.) plug into the same `Renderer` interface without changing FSL, ontology, or compiler contracts.

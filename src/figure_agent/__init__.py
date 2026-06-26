@@ -18,6 +18,7 @@ from figure_agent.ontology import (
     graph_to_json,
     graph_to_yaml,
 )
+from figure_agent.renderers import RenderConfig, RenderResult, Renderer, SVGRenderer
 
 __all__ = [
     "Cell",
@@ -30,6 +31,10 @@ __all__ = [
     "OntologyValidator",
     "Relationship",
     "RelationshipType",
+    "RenderConfig",
+    "RenderResult",
+    "Renderer",
+    "SVGRenderer",
     "compile_figure",
     "create_entity",
     "graph_from_dict",
@@ -43,4 +48,4 @@ __all__ = [
     "validate_schema",
 ]
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
