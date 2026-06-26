@@ -28,6 +28,7 @@ from figure_agent.ontology import (
     graph_to_json,
     graph_to_yaml,
 )
+from figure_agent.mcp import MCPHandlers, MCPServerConfig, create_mcp_server
 from figure_agent.renderers import (
     GPTImagePromptBuilder,
     GPTImagePromptRenderer,
@@ -49,6 +50,8 @@ __all__ = [
     "GPTImagePromptRenderer",
     "GPTImageRenderer",
     "Label",
+    "MCPHandlers",
+    "MCPServerConfig",
     "OntologyGraph",
     "OntologyValidator",
     "Relationship",
@@ -60,6 +63,7 @@ __all__ = [
     "compile",
     "compile_figure",
     "create_entity",
+    "create_mcp_server",
     "create_gpt_image_renderer",
     "export",
     "generate_fsl",

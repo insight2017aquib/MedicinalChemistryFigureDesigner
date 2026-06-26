@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "figure-agent"
-version = "0.8.0"
-description = "FSL engine, ontology, compiler, SVG renderer, and public API for publication figure design"
+version = "1.0.0"
+description = "FSL engine, ontology, compiler, renderers, public API, and MCP server for publication figure design"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
@@ -15,7 +15,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+mcp = ["mcp>=1.27,<2"]
+dev = ["pytest>=8.0", "mcp>=1.27,<2"]
+
+[project.scripts]
+figure-agent-mcp = "figure_agent.mcp.server:main"
 
 [tool.setuptools.package-dir]
 "" = "src"

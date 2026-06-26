@@ -510,7 +510,7 @@ def version() -> VersionResponse:
     _ensure_default_renderers()
     return VersionResponse(
         version=__version__,
-        api_version="0.7",
+        api_version="1.0",
         fsl_versions=tuple(sorted(SUPPORTED_FSL_VERSIONS)),
         renderers=tuple(list_renderers()),
     )

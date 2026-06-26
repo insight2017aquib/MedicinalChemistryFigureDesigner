@@ -44,7 +44,7 @@ def test_version_metadata() -> None:
     """Version endpoint should expose API and renderer metadata."""
     result = version()
     assert result.version
-    assert result.api_version == "0.7"
+    assert result.api_version == "1.0"
     assert "svg" in result.renderers
     assert result.fsl_versions
 

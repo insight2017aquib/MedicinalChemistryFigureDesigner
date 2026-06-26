@@ -2,7 +2,7 @@
 
 A modular platform for designing publication-quality scientific figures for medicinal chemistry and molecular biology review articles. Built as a Claude Skill with a staged pipeline from user brief to validated, export-ready figures.
 
-**Current status:** v0.8 — Claude reasoning layer (deterministic FSL generation)
+**Current status:** v1.0 — Figure Agent MCP Server
 
 **Repository:** [github.com/insight2017aquib/MedicinalChemistryFigureDesigner](https://github.com/insight2017aquib/MedicinalChemistryFigureDesigner)
 
@@ -50,9 +50,10 @@ Review-article figures require consistent visual language, structural compliance
 | v0.7 | Figure Agent API | Complete |
 | v0.8 | Claude reasoning layer | Complete |
 | v0.9 | Knowledge base | Planned |
-| v1.0 | BioRender integration | Planned |
-| v1.1 | Validation engine | Planned |
-| v1.2 | Scientific Figure Agent | Planned |
+| v1.0 | Figure Agent MCP Server | Complete |
+| v1.1 | BioRender integration | Planned |
+| v1.2 | Validation engine | Planned |
+| v1.3 | Scientific Figure Agent | Planned |
 
 See [docs/DevelopmentRoadmap.md](docs/DevelopmentRoadmap.md) for milestone details.
 
@@ -62,20 +63,46 @@ See [docs/DevelopmentRoadmap.md](docs/DevelopmentRoadmap.md) for milestone detai
 
 ```mermaid
 flowchart TD
+    Claude[Claude via MCP] --> MCP[Figure Agent MCP Server]
     LLM[Any LLM or Tool] --> API[Figure Agent API]
+    MCP --> API
     API --> B[Figure Specification Language]
     B --> C[Compiler]
     C --> O[Ontology]
-    O --> R[Renderer Registry]
+    O --> VS[Visual Scene]
+    VS --> R[Renderer Registry]
     R --> SVG[SVG Renderer]
-    R --> Future[Future Renderers]
+    R --> GPT[GPT Image Renderer]
     SVG --> E[Scientific Validation]
+    GPT --> E
     E --> F[Publication Export]
 ```
 
-The **Figure Agent API** is the stable entry point. LLMs, scripts, and IDE extensions call `generate_fsl()`, `validate_fsl()`, `compile()`, `render()`, and `export()` without importing internal modules directly.
+The **Figure Agent MCP Server** (`src/figure_agent/mcp/`) is the public interface for Claude. The **Figure Agent API** remains the stable entry point for scripts and other tools. Claude should use MCP tools — never call GPT Image APIs directly.
 
 Full architecture with module diagrams: [docs/Architecture.md](docs/Architecture.md)
+
+### MCP Server (v1.0)
+
+Expose Figure Agent to Claude as MCP tools:
+
+```bash
+pip install -e ".[mcp]"
+figure-agent-mcp
+```
+
+| Tool | Purpose |
+|------|---------|
+| `generate_fsl` | Natural language → valid FSL |
+| `validate_fsl` | FSL validation report |
+| `compile` | FSL → ontology graph |
+| `build_scene` | FSL/graph → Visual Scene |
+| `render_svg` | FSL/graph → SVG |
+| `render_gpt_image` | FSL/graph → PNG (via Figure Agent) |
+| `render` | Auto-select SVG or PNG |
+| `health` / `version` | Server status |
+
+Guides: [docs/MCP_QuickStart.md](docs/MCP_QuickStart.md) · [docs/Claude_MCP_Integration.md](docs/Claude_MCP_Integration.md)
 
 ---
 
@@ -92,6 +119,8 @@ MedicinalChemistryFigureDesigner/
 │
 ├── docs/                      # Platform documentation
 │   ├── Architecture.md
+│   ├── MCP_QuickStart.md
+│   ├── Claude_MCP_Integration.md
 │   ├── DevelopmentRoadmap.md
 │   ├── DesignPrinciples.md
 │   ├── Contributing.md
@@ -103,6 +132,7 @@ MedicinalChemistryFigureDesigner/
 │   ├── compiler/              # FSL-to-ontology compilation
 │   ├── renderers/             # SVG and future renderer backends
 │   ├── api/                   # Public API (service, requests, responses)
+│   ├── mcp/                   # MCP server (Claude tool interface)
 │   └── core/                  # Constants and shared types
 │
 ├── scripts/                   # CLI demos

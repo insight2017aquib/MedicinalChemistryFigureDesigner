@@ -193,14 +193,39 @@ flowchart LR
 | Renderer | Target | Milestone |
 |----------|--------|-----------|
 | `BioRenderRenderer` | BioRender MCP assets | v0.8 |
-| `GPTImageRenderer` | Image generation API | v0.9+ |
+| `GPTImageRenderer` | Image generation API | v1.0 |
+| `Figure Agent MCP Server` | Claude tool interface | v1.0 |
 | `PowerPointRenderer` | Slide export | Future |
 | `MermaidRenderer` | Diagram syntax | Future |
 | `IllustratorRenderer` | Vector authoring tools | Future |
 
 Demo: `python scripts/render_example.py` writes `output/example.svg`.
 
-### 6. Figure Agent API
+### 6. Figure Agent MCP Server
+
+**Implementation:** `src/figure_agent/mcp/` (v1.0)
+
+Public interface for Claude and other MCP clients. The MCP layer orchestrates existing API calls — it does not contain renderer-specific logic.
+
+| Module | Responsibility |
+|--------|----------------|
+| `server.py` | FastMCP server and stdio entry point |
+| `handlers.py` | Tool orchestration delegating to `figure_agent.api` |
+| `registry.py` | Tool definitions (`generate_fsl`, `render_gpt_image`, etc.) |
+| `models.py` | `MCPToolResult` response envelope |
+| `config.py` | Output directory and backend factory configuration |
+
+```mermaid
+flowchart LR
+    Claude[Claude] --> MCP[mcp/server.py]
+    MCP --> Handlers[mcp/handlers.py]
+    Handlers --> API[api/service.py]
+    API --> Pipeline[FSL / Compiler / Scene / Renderers]
+```
+
+Claude must use `render_gpt_image` for PNG output — never call GPT Image APIs directly.
+
+### 7. Figure Agent API
 
 **Implementation:** `src/figure_agent/api/` (v0.7)
 
@@ -230,13 +255,13 @@ register_renderer("biorender", BioRenderRenderer)
 render(graph, renderer="biorender")
 ```
 
-### 7. Scientific Validation
+### 8. Scientific Validation
 
 **Location:** `validation/`, `rules/`
 
 Quality gates applied before export. Validates structural compliance, accessibility, naming, and metadata—not scientific accuracy (user-supplied).
 
-### 8. Publication Export
+### 9. Publication Export
 
 **Location:** `validation/`, `rules/export-formats.md`
 
