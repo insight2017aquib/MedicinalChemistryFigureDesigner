@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 
-from figure_agent.ontology.entities import BaseEntity
-from figure_agent.ontology.enums import EntityType
 from figure_agent.ontology.relationships import OntologyGraph
 from figure_agent.renderers.base import RenderConfig, RenderResult, Renderer
 from figure_agent.renderers.exceptions import SVGRenderError
@@ -15,18 +13,18 @@ from figure_agent.renderers.geometry import (
     Rect,
     center_text_position,
 )
-from figure_agent.renderers.layout import (
-    GraphLayout,
-    LayoutItem,
-    compute_layout,
-    resolve_item_rects,
+from figure_agent.renderers.scene.builder import build_visual_scene
+from figure_agent.renderers.scene.exceptions import SceneBuildError
+from figure_agent.renderers.scene.models import (
+    LabelAnchor,
+    PrimitiveKind,
+    SceneStyle,
+    VisualLabel,
+    VisualPrimitive,
+    VisualScene,
 )
 from figure_agent.renderers.styling import (
-    DEFAULT_CORNER_RADIUS,
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_FONT_SIZE,
     DEFAULT_PALETTE,
-    DEFAULT_STROKE_WIDTH,
     MonochromePalette,
 )
 
@@ -45,13 +43,16 @@ def _sub(parent: ET.Element, tag: str, **attrs: str | float) -> ET.Element:
     return element
 
 
-def _display_label(entity: BaseEntity) -> str:
-    if entity.label:
-        return entity.label
-    text = getattr(entity, "text", None)
-    if isinstance(text, str) and text:
-        return text
-    return entity.id.split(":")[-1]
+def _palette_from_scene(scene: VisualScene) -> MonochromePalette:
+    palette = scene.style.palette
+    return MonochromePalette(
+        background=palette.background,
+        stroke=palette.stroke,
+        fill=palette.fill,
+        fill_container=palette.fill_container,
+        text=palette.text,
+        arrow=palette.arrow,
+    )
 
 
 class SVGRenderer(Renderer):
@@ -69,13 +70,24 @@ class SVGRenderer(Renderer):
         """Render an ontology graph to SVG."""
         cfg = config or RenderConfig()
         try:
-            layout = compute_layout(graph, cfg)
-            svg_root = self._build_svg(layout, graph, cfg)
+            scene = build_visual_scene(graph, config=cfg, palette=self._palette)
+            return self.render_scene(scene)
+        except SceneBuildError as exc:
+            raise SVGRenderError(str(exc)) from exc
+        except Exception as exc:
+            if exc.__class__.__module__.startswith("figure_agent.renderers"):
+                raise
+            raise SVGRenderError(f"Failed to render SVG: {exc}") from exc
+
+    def render_scene(self, scene: VisualScene) -> RenderResult:
+        """Render a visual scene to SVG."""
+        try:
+            svg_root = self._build_svg(scene)
             content = ET.tostring(svg_root, encoding="unicode")
             return RenderResult(
                 content=content,
-                width=layout.canvas_size.width,
-                height=layout.canvas_size.height,
+                width=scene.canvas_width,
+                height=scene.canvas_height,
                 mime_type="image/svg+xml",
             )
         except Exception as exc:
@@ -83,19 +95,18 @@ class SVGRenderer(Renderer):
                 raise
             raise SVGRenderError(f"Failed to render SVG: {exc}") from exc
 
-    def _build_svg(
-        self,
-        layout: GraphLayout,
-        graph: OntologyGraph,
-        config: RenderConfig,
-    ) -> ET.Element:
+    def _build_svg(self, scene: VisualScene) -> ET.Element:
+        palette = _palette_from_scene(scene)
+        style = scene.style
+        primitive_by_id = scene.primitive_by_id()
+
         svg = ET.Element(
             "svg",
             {
                 "xmlns": SVG_NS,
-                "width": str(layout.canvas_size.width),
-                "height": str(layout.canvas_size.height),
-                "viewBox": f"0 0 {layout.canvas_size.width} {layout.canvas_size.height}",
+                "width": str(scene.canvas_width),
+                "height": str(scene.canvas_height),
+                "viewBox": f"0 0 {scene.canvas_width} {scene.canvas_height}",
             },
         )
 
@@ -105,45 +116,59 @@ class SVGRenderer(Renderer):
             id="canvas-background",
             x=0,
             y=0,
-            width=layout.canvas_size.width,
-            height=layout.canvas_size.height,
-            fill=self._palette.background,
+            width=scene.canvas_width,
+            height=scene.canvas_height,
+            fill=palette.background,
             stroke="none",
         )
 
-        rects = resolve_item_rects(layout)
-        for panel in layout.panels:
-            panel_group = ET.SubElement(svg, "g", id=_sanitize_id(panel.entity.id))
-            self._draw_panel_boundary(panel_group, panel.entity, panel.rect)
+        for panel in scene.panels:
+            panel_group = ET.SubElement(svg, "g", id=_sanitize_id(panel.id))
+            boundary = primitive_by_id[panel.id]
+            self._draw_panel_boundary(panel_group, boundary, palette, style)
 
-            for item in panel.items:
+            for member_id in panel.primitive_ids:
+                if member_id == panel.id:
+                    continue
+                primitive = primitive_by_id[member_id]
                 item_group = ET.SubElement(
                     panel_group,
                     "g",
-                    id=_sanitize_id(item.entity.id),
+                    id=_sanitize_id(primitive.id),
                 )
-                self._draw_item(item_group, item)
+                self._draw_primitive(item_group, primitive, palette, style)
 
         arrow_group = ET.SubElement(svg, "g", id="arrows")
-        for index, (source_id, target_id) in enumerate(layout.arrows):
-            if source_id not in rects or target_id not in rects:
+        for connector in scene.connectors:
+            source_rect = primitive_by_id.get(connector.source_id)
+            target_rect = primitive_by_id.get(connector.target_id)
+            if source_rect is None or target_rect is None:
                 continue
             self._draw_arrow(
                 arrow_group,
-                rects[source_id],
-                rects[target_id],
-                arrow_id=f"arrow-{index}",
+                source_rect.bounds,
+                target_rect.bounds,
+                palette,
+                style,
+                arrow_id=connector.id,
             )
 
-        self._draw_style_annotations(svg, graph, layout, config.margin)
+        if scene.style_references:
+            group = ET.SubElement(svg, "g", id="style-references")
+            for style_ref in scene.style_references:
+                primitive = primitive_by_id[style_ref.id]
+                self._draw_primitive(group, primitive, palette, style)
+
         return svg
 
     def _draw_panel_boundary(
         self,
         parent: ET.Element,
-        entity: BaseEntity,
-        rect: Rect,
+        primitive: VisualPrimitive,
+        palette: MonochromePalette,
+        style: SceneStyle,
     ) -> None:
+        rect = primitive.bounds
         _sub(
             parent,
             "rect",
@@ -151,79 +176,106 @@ class SVGRenderer(Renderer):
             y=rect.y,
             width=rect.width,
             height=rect.height,
-            rx=DEFAULT_CORNER_RADIUS,
-            ry=DEFAULT_CORNER_RADIUS,
-            fill=self._palette.fill_container,
-            stroke=self._palette.stroke,
-            stroke_width=DEFAULT_STROKE_WIDTH,
+            rx=style.corner_radius,
+            ry=style.corner_radius,
+            fill=palette.fill_container,
+            stroke=palette.stroke,
+            stroke_width=style.stroke_width,
         )
-        title = _display_label(entity)
-        _sub(
-            parent,
-            "text",
-            x=rect.x + 8,
-            y=rect.y + 16,
-            fill=self._palette.text,
-            font_family=DEFAULT_FONT_FAMILY,
-            font_size=DEFAULT_FONT_SIZE,
-            text_anchor="start",
-        ).text = title
+        if primitive.label is not None:
+            self._draw_label(parent, primitive, primitive.label, palette, style)
 
-    def _draw_item(self, parent: ET.Element, item: LayoutItem) -> None:
-        entity = item.entity
-        rect = item.rect
-        label = _display_label(entity)
+    def _draw_primitive(
+        self,
+        parent: ET.Element,
+        primitive: VisualPrimitive,
+        palette: MonochromePalette,
+        style: SceneStyle,
+    ) -> None:
+        rect = primitive.bounds
 
-        if item.shape == "text_label":
-            self._draw_rectangle(parent, rect, rounded=False)
-            self._draw_centered_text(parent, rect, label)
+        if primitive.kind == PrimitiveKind.ARROW:
+            self._draw_inline_arrow(parent, rect, palette, style, arrow_id="inline-arrow")
             return
 
-        if item.shape == "arrow":
-            self._draw_inline_arrow(parent, rect, arrow_id="inline-arrow")
-            return
+        rounded = primitive.kind in {
+            PrimitiveKind.ROUNDED_RECTANGLE,
+            PrimitiveKind.STYLE_REFERENCE,
+        }
+        self._draw_rectangle(parent, rect, palette, style, rounded=rounded)
 
-        if item.shape == "rounded_rectangle":
-            self._draw_rectangle(parent, rect, rounded=True)
-            self._draw_centered_text(parent, rect, label)
-            return
+        if primitive.label is not None:
+            self._draw_label(parent, primitive, primitive.label, palette, style)
 
-        self._draw_rectangle(parent, rect, rounded=False)
-        self._draw_centered_text(parent, rect, label)
-
-    def _draw_rectangle(self, parent: ET.Element, rect: Rect, *, rounded: bool) -> None:
+    def _draw_rectangle(
+        self,
+        parent: ET.Element,
+        rect: Rect,
+        palette: MonochromePalette,
+        style: SceneStyle,
+        *,
+        rounded: bool,
+    ) -> None:
         attrs: dict[str, str | float] = {
             "x": rect.x,
             "y": rect.y,
             "width": rect.width,
             "height": rect.height,
-            "fill": self._palette.fill,
-            "stroke": self._palette.stroke,
-            "stroke_width": DEFAULT_STROKE_WIDTH,
+            "fill": palette.fill,
+            "stroke": palette.stroke,
+            "stroke_width": style.stroke_width,
         }
         if rounded:
-            attrs["rx"] = DEFAULT_CORNER_RADIUS
-            attrs["ry"] = DEFAULT_CORNER_RADIUS
+            attrs["rx"] = style.corner_radius
+            attrs["ry"] = style.corner_radius
         _sub(parent, "rect", **attrs)
 
-    def _draw_centered_text(self, parent: ET.Element, rect: Rect, text: str) -> None:
-        point = center_text_position(rect, text, font_size=DEFAULT_FONT_SIZE)
+    def _label_point(
+        self,
+        primitive: VisualPrimitive,
+        label: VisualLabel,
+        style: SceneStyle,
+    ) -> Point:
+        if label.anchor == LabelAnchor.MIDDLE:
+            return center_text_position(
+                primitive.bounds,
+                label.text,
+                font_size=style.font_size,
+            )
+        return label.position
+
+    def _draw_label(
+        self,
+        parent: ET.Element,
+        primitive: VisualPrimitive,
+        label: VisualLabel,
+        palette: MonochromePalette,
+        style: SceneStyle,
+    ) -> None:
+        point = self._label_point(primitive, label, style)
+        anchor_map = {
+            LabelAnchor.START: "start",
+            LabelAnchor.MIDDLE: "middle",
+            LabelAnchor.END: "end",
+        }
         _sub(
             parent,
             "text",
             x=point.x,
             y=point.y,
-            fill=self._palette.text,
-            font_family=DEFAULT_FONT_FAMILY,
-            font_size=DEFAULT_FONT_SIZE,
-            text_anchor="middle",
-        ).text = text
+            fill=palette.text,
+            font_family=style.font_family,
+            font_size=style.font_size,
+            text_anchor=anchor_map[label.anchor],
+        ).text = label.text
 
     def _draw_arrow(
         self,
         parent: ET.Element,
         source_rect: Rect,
         target_rect: Rect,
+        palette: MonochromePalette,
+        style: SceneStyle,
         *,
         arrow_id: str,
     ) -> None:
@@ -245,8 +297,8 @@ class SVGRenderer(Renderer):
             y1=line_start.y,
             x2=line_end.x,
             y2=line_end.y,
-            stroke=self._palette.arrow,
-            stroke_width=DEFAULT_STROKE_WIDTH,
+            stroke=palette.arrow,
+            stroke_width=style.stroke_width,
         )
         left, tip, right = segment.head_points()
         points = f"{left.x},{left.y} {tip.x},{tip.y} {right.x},{right.y}"
@@ -254,13 +306,19 @@ class SVGRenderer(Renderer):
             parent,
             "polygon",
             points=points,
-            fill=self._palette.arrow,
-            stroke=self._palette.arrow,
+            fill=palette.arrow,
+            stroke=palette.arrow,
             stroke_width=1,
         )
 
     def _draw_inline_arrow(
-        self, parent: ET.Element, rect: Rect, *, arrow_id: str
+        self,
+        parent: ET.Element,
+        rect: Rect,
+        palette: MonochromePalette,
+        style: SceneStyle,
+        *,
+        arrow_id: str,
     ) -> None:
         segment = ArrowSegment(
             start=Point(rect.x + 12, rect.center.y),
@@ -275,8 +333,8 @@ class SVGRenderer(Renderer):
             y1=line_start.y,
             x2=line_end.x,
             y2=line_end.y,
-            stroke=self._palette.arrow,
-            stroke_width=DEFAULT_STROKE_WIDTH,
+            stroke=palette.arrow,
+            stroke_width=style.stroke_width,
         )
         left, tip, right = segment.head_points()
         points = f"{left.x},{left.y} {tip.x},{tip.y} {right.x},{right.y}"
@@ -284,30 +342,7 @@ class SVGRenderer(Renderer):
             parent,
             "polygon",
             points=points,
-            fill=self._palette.arrow,
-            stroke=self._palette.arrow,
+            fill=palette.arrow,
+            stroke=palette.arrow,
             stroke_width=1,
         )
-
-    def _draw_style_annotations(
-        self,
-        svg: ET.Element,
-        graph: OntologyGraph,
-        layout: GraphLayout,
-        margin: float,
-    ) -> None:
-        annotations = [
-            entity
-            for entity in graph.entities
-            if entity.entity_type == EntityType.ANNOTATION and ":style:" in entity.id
-        ]
-        if not annotations:
-            return
-
-        group = ET.SubElement(svg, "g", id="style-references")
-        base_y = layout.canvas_size.height - margin - 28
-        x = margin
-        for index, entity in enumerate(annotations):
-            rect = Rect(x + index * 140, base_y, 130, 24)
-            self._draw_rectangle(group, rect, rounded=True)
-            self._draw_centered_text(group, rect, _display_label(entity))

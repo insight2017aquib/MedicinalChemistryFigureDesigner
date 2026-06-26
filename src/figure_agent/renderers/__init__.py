@@ -12,6 +12,11 @@ from figure_agent.renderers.gpt_image import (
     GPTImagePromptRenderer,
     ImagePromptSpec,
 )
+from figure_agent.renderers.scene import (
+    SceneBuildError,
+    VisualScene,
+    build_visual_scene,
+)
 from figure_agent.renderers.svg_renderer import SVGRenderer
 
 __all__ = [
@@ -24,6 +29,9 @@ __all__ = [
     "RenderError",
     "RenderResult",
     "Renderer",
+    "SceneBuildError",
     "SVGRenderError",
     "SVGRenderer",
+    "VisualScene",
+    "build_visual_scene",
 ]

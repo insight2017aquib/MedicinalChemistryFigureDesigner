@@ -1,20 +1,20 @@
-"""Deterministic, renderer-agnostic image prompt builder for ontology graphs."""
+"""Deterministic, renderer-agnostic image prompt builder for visual scenes."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-from figure_agent.ontology.entities import BaseEntity
-from figure_agent.ontology.enums import EntityType, RelationshipType
+from figure_agent.ontology.enums import EntityType
 from figure_agent.ontology.relationships import OntologyGraph
 from figure_agent.renderers.base import RenderConfig
-from figure_agent.renderers.exceptions import LayoutError
 from figure_agent.renderers.gpt_image.exceptions import GPTImagePromptBuildError
-from figure_agent.renderers.layout import GraphLayout, compute_layout, validate_layout
+from figure_agent.renderers.scene.builder import build_visual_scene
+from figure_agent.renderers.scene.exceptions import SceneBuildError
+from figure_agent.renderers.scene.models import VisualPanel, VisualPrimitive, VisualScene
 
 PROMPT_VERSION = "1.0"
 
-_PRIMITIVE_BY_ENTITY_TYPE: dict[EntityType, str] = {
+_PROMPT_PRIMITIVE_BY_ENTITY_TYPE: dict[EntityType, str] = {
     EntityType.LABEL: "text_label",
     EntityType.ARROW: "straight_arrow",
     EntityType.ANNOTATION: "rounded_rectangle",
@@ -31,6 +31,17 @@ _PRIMITIVE_BY_ENTITY_TYPE: dict[EntityType, str] = {
 }
 
 
+def _prompt_primitive(primitive: VisualPrimitive) -> str:
+    if ":panel:" in primitive.id:
+        return "panel_boundary"
+    if primitive.entity_type is not None:
+        return _PROMPT_PRIMITIVE_BY_ENTITY_TYPE.get(
+            primitive.entity_type,
+            "rectangle",
+        )
+    return "rectangle"
+
+
 @dataclass(frozen=True)
 class ImagePromptSpec:
     """Structured output from the prompt builder."""
@@ -41,102 +52,51 @@ class ImagePromptSpec:
     height: float
 
 
-def _display_label(entity: BaseEntity) -> str:
-    if entity.label:
-        return entity.label
-    text = getattr(entity, "text", None)
-    if isinstance(text, str) and text:
-        return text
-    return entity.id.split(":")[-1]
+def _short_id(entity_id: str) -> str:
+    return entity_id.split(":")[-1]
 
 
-def _is_panel(entity: BaseEntity) -> bool:
-    return ":panel:" in entity.id
+def _is_panel(panel: VisualPanel) -> bool:
+    return ":panel:" in panel.id
 
 
-def _is_figure_root(entity: BaseEntity) -> bool:
-    return ":figure:" in entity.id
-
-
-def _is_style_annotation(entity: BaseEntity) -> bool:
-    return entity.entity_type == EntityType.ANNOTATION and ":style:" in entity.id
-
-
-def _primitive_name(entity: BaseEntity) -> str:
-    if _is_panel(entity):
-        return "panel_boundary"
-    return _PRIMITIVE_BY_ENTITY_TYPE.get(entity.entity_type, "rectangle")
-
-
-def _contains_children(graph: OntologyGraph, parent_id: str) -> list[str]:
-    return [
-        rel.target_id
-        for rel in graph.relationships
-        if rel.type == RelationshipType.CONTAINS and rel.source_id == parent_id
-    ]
-
-
-def _entity_by_id(graph: OntologyGraph) -> dict[str, BaseEntity]:
-    return {entity.id: entity for entity in graph.entities}
-
-
-def _sorted_contains_children(
-    graph: OntologyGraph,
-    parent_id: str,
-    entities: dict[str, BaseEntity],
-) -> list[BaseEntity]:
-    child_ids = sorted(
-        cid
-        for cid in _contains_children(graph, parent_id)
-        if cid in entities and not _is_panel(entities[cid])
-    )
-    return [entities[cid] for cid in child_ids]
-
-
-def _style_reference_paths(graph: OntologyGraph, entities: dict[str, BaseEntity]) -> list[str]:
-    paths: list[str] = []
-    for rel in graph.relationships:
-        if rel.type != RelationshipType.REFERENCES:
-            continue
-        target = entities.get(rel.target_id)
-        if target is None or not _is_style_annotation(target):
-            continue
-        style_ref = target.metadata.get("style_ref")
-        if isinstance(style_ref, str) and style_ref:
-            paths.append(style_ref)
-        elif target.label:
-            paths.append(target.label)
-    return sorted(set(paths))
+def _panel_children(scene: VisualScene, panel: VisualPanel) -> list[str]:
+    primitive_by_id = scene.primitive_by_id()
+    child_ids = [member_id for member_id in panel.primitive_ids if member_id != panel.id]
+    return sorted(child_ids, key=_short_id)
 
 
 def _format_panel_section(
-    panel: BaseEntity,
-    children: list[BaseEntity],
+    scene: VisualScene,
+    panel: VisualPanel,
     *,
     index: int,
 ) -> list[str]:
-    panel_key = panel.id.split(":")[-1]
+    primitive_by_id = scene.primitive_by_id()
+    panel_key = _short_id(panel.id)
     lines = [f"PANEL[{index}] id={panel_key} primitive=panel_boundary"]
-    for child_index, child in enumerate(children, start=1):
-        child_key = child.id.split(":")[-1]
-        primitive = _primitive_name(child)
-        label = _display_label(child)
+    for child_index, child_id in enumerate(_panel_children(scene, panel), start=1):
+        primitive = primitive_by_id[child_id]
+        child_key = _short_id(child_id)
+        prompt_primitive = _prompt_primitive(primitive)
+        label = primitive.label.text if primitive.label is not None else child_key
         lines.append(
-            f"  ELEMENT[{child_index}] id={child_key} primitive={primitive} label={label!r}"
+            f"  ELEMENT[{child_index}] id={child_key} primitive={prompt_primitive} label={label!r}"
         )
     return lines
 
 
-def _format_arrow_section(layout: GraphLayout) -> list[str]:
-    if not layout.arrows:
+def _format_arrow_section(scene: VisualScene) -> list[str]:
+    if not scene.connectors:
         return []
     lines = ["ARROWS:"]
-    for index, (source_id, target_id) in enumerate(
-        sorted(layout.arrows, key=lambda pair: (pair[0], pair[1])),
-        start=1,
-    ):
-        source_key = source_id.split(":")[-1]
-        target_key = target_id.split(":")[-1]
+    sorted_connectors = sorted(
+        scene.connectors,
+        key=lambda connector: (connector.source_id, connector.target_id),
+    )
+    for index, connector in enumerate(sorted_connectors, start=1):
+        source_key = _short_id(connector.source_id)
+        target_key = _short_id(connector.target_id)
         lines.append(
             f"  ARROW[{index}] from={source_key!r} to={target_key!r} style=straight"
         )
@@ -144,7 +104,7 @@ def _format_arrow_section(layout: GraphLayout) -> list[str]:
 
 
 class GPTImagePromptBuilder:
-    """Convert ontology graphs into deterministic image-generation prompts.
+    """Convert visual scenes into deterministic image-generation prompts.
 
     Output is renderer-agnostic plain text describing structural primitives only.
     No biological semantics, scientific knowledge, or vendor-specific syntax.
@@ -169,27 +129,24 @@ class GPTImagePromptBuilder:
             GPTImagePromptBuildError: If layout validation fails.
         """
         cfg = config or RenderConfig()
+        if not graph.entities:
+            raise GPTImagePromptBuildError("Cannot layout an empty ontology graph")
+
         try:
-            layout = compute_layout(graph, cfg)
-            validate_layout(layout)
-        except LayoutError as exc:
+            scene = build_visual_scene(graph, config=cfg)
+        except SceneBuildError as exc:
             raise GPTImagePromptBuildError(str(exc)) from exc
 
-        entities = _entity_by_id(graph)
-        root = layout.root
-        if root is None:
-            raise GPTImagePromptBuildError("Ontology graph has no layout root")
+        return self.build_from_scene(scene)
 
-        figure_title = _display_label(root)
-        layout_type = root.metadata.get("layout_type", "unknown")
-        style_refs = _style_reference_paths(graph, entities)
-
+    def build_from_scene(self, scene: VisualScene) -> ImagePromptSpec:
+        """Build a deterministic prompt from a visual scene."""
         lines: list[str] = [
             f"PROMPT_VERSION: {PROMPT_VERSION}",
             "TASK: structural_schematic_diagram",
-            f"CANVAS: width={int(layout.canvas_size.width)} height={int(layout.canvas_size.height)}",
+            f"CANVAS: width={int(scene.canvas_width)} height={int(scene.canvas_height)}",
             "STYLE: monochrome flat vector schematic; no photorealism; no icons; no gradients",
-            f"FIGURE title={figure_title!r} layout_type={layout_type!r}",
+            f"FIGURE title={scene.title!r} layout_type={scene.layout_type!r}",
             "CONSTRAINTS:",
             "  - structural layout only",
             "  - use labels exactly as given",
@@ -198,38 +155,30 @@ class GPTImagePromptBuilder:
         ]
 
         panel_entities = sorted(
-            (
-                panel_layout.entity
-                for panel_layout in layout.panels
-                if _is_panel(panel_layout.entity)
-            ),
-            key=lambda entity: entity.id,
+            (panel for panel in scene.panels if _is_panel(panel)),
+            key=lambda panel: panel.id,
         )
 
+        lines.append("COMPOSITION:")
         if panel_entities:
-            lines.append("COMPOSITION:")
             for panel_index, panel in enumerate(panel_entities, start=1):
-                children = _sorted_contains_children(graph, panel.id, entities)
-                lines.extend(
-                    _format_panel_section(panel, children, index=panel_index)
-                )
+                lines.extend(_format_panel_section(scene, panel, index=panel_index))
         else:
-            lines.append("COMPOSITION:")
             lines.append("  ELEMENT[1] id=figure_root primitive=rectangle")
 
-        arrow_lines = _format_arrow_section(layout)
+        arrow_lines = _format_arrow_section(scene)
         if arrow_lines:
             lines.extend(arrow_lines)
 
-        if style_refs:
+        if scene.style_references:
             lines.append("STYLE_REFERENCES:")
-            for index, path in enumerate(style_refs, start=1):
-                lines.append(f"  REF[{index}] path={path!r}")
+            for index, style_ref in enumerate(scene.style_references, start=1):
+                lines.append(f"  REF[{index}] path={style_ref.path!r}")
 
         prompt = "\n".join(lines)
         return ImagePromptSpec(
             version=PROMPT_VERSION,
             prompt=prompt,
-            width=layout.canvas_size.width,
-            height=layout.canvas_size.height,
+            width=scene.canvas_width,
+            height=scene.canvas_height,
         )

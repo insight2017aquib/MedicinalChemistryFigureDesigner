@@ -1,0 +1,17 @@
+PROMPT_VERSION: 1.0
+TASK: structural_schematic_diagram
+CANVAS: width=800 height=640
+STYLE: monochrome flat vector schematic; no photorealism; no icons; no gradients
+FIGURE title='Placeholder Figure' layout_type='multi-panel'
+CONSTRAINTS:
+  - structural layout only
+  - use labels exactly as given
+  - do not invent scientific content
+  - do not add biology or chemistry iconography
+COMPOSITION:
+PANEL[1] id=panel-a primitive=panel_boundary
+  ELEMENT[1] id=slot-1 primitive=text_label label='Primary content'
+PANEL[2] id=panel-b primitive=panel_boundary
+  ELEMENT[1] id=slot-2 primitive=rectangle label='Secondary'
+STYLE_REFERENCES:
+  REF[1] path='styles/color-system.md'
