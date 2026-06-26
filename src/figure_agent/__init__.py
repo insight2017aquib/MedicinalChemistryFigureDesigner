@@ -28,7 +28,14 @@ from figure_agent.ontology import (
     graph_to_json,
     graph_to_yaml,
 )
-from figure_agent.renderers import RenderConfig, RenderResult, Renderer, SVGRenderer
+from figure_agent.renderers import (
+    GPTImagePromptBuilder,
+    GPTImagePromptRenderer,
+    RenderConfig,
+    RenderResult,
+    Renderer,
+    SVGRenderer,
+)
 
 __all__ = [
     "Cell",
@@ -36,6 +43,8 @@ __all__ = [
     "Figure",
     "FigureCompiler",
     "FSLValidator",
+    "GPTImagePromptBuilder",
+    "GPTImagePromptRenderer",
     "Label",
     "OntologyGraph",
     "OntologyValidator",

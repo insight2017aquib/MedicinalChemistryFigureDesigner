@@ -19,3 +19,10 @@ class SVGRenderError(RenderError):
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
+
+
+class GPTImagePromptError(RenderError):
+    """Raised when image prompt generation fails."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
