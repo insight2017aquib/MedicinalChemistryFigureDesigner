@@ -28,7 +28,8 @@ The platform transforms a user brief into a publication-ready figure through a s
 ```mermaid
 flowchart TD
     A[Claude Skill] --> B[Figure Specification Language]
-    B --> O[Ontology]
+    B --> C[Compiler]
+    C --> O[Ontology]
     O --> R[Renderer]
     R --> E[Scientific Validation]
     E --> F[Publication Export]
@@ -37,6 +38,7 @@ flowchart TD
         A
         B
         B2[src/figure_agent/fsl/]
+        C2[src/figure_agent/compiler/]
         O2[src/figure_agent/ontology/]
         E
         G[styles/]
@@ -48,7 +50,8 @@ flowchart TD
     end
 
     B --> B2
-    B --> O2
+    B --> C2
+    C2 --> O2
     O --> O2
 
     subgraph external [Planned Integrations]
@@ -125,19 +128,41 @@ flowchart LR
 
 The ontology defines **structure only** — no biological semantics, no rendering, no scientific validation.
 
-### 4. Renderer (Planned)
+### 4. Figure Compilation Engine
+
+**Implementation:** `src/figure_agent/compiler/` (v0.5)
+
+Transforms validated FSL `Figure` documents into `OntologyGraph` instances. Bridges the specification layer and the typed entity layer.
+
+| Module | Responsibility |
+|--------|----------------|
+| `compiler.py` | `FigureCompiler`, orchestrates compilation pipeline |
+| `mapping.py` | Maps panels, content slots, and style refs to ontology entities |
+| `context.py` | Tracks compilation state, qualified object registry, ID namespacing |
+| `validator.py` | Detects orphan slots, missing references, invalid mappings |
+
+```mermaid
+flowchart LR
+    FSL[FSL Figure] --> FC[FigureCompiler]
+    FC --> Map[mapping.py]
+    Map --> Ctx[CompilationContext]
+    Ctx --> Graph[OntologyGraph]
+    Graph --> OV[ontology/validator.py]
+```
+
+### 5. Renderer (Planned)
 
 **Location:** Planned external integration (v0.7+)
 
 Rendering pipeline that converts ontology graphs into raster or vector figure assets. May integrate BioRender MCP (v0.6) and other backends.
 
-### 5. Scientific Validation
+### 6. Scientific Validation
 
 **Location:** `validation/`, `rules/`
 
 Quality gates applied before export. Validates structural compliance, accessibility, naming, and metadata—not scientific accuracy (user-supplied).
 
-### 6. Publication Export
+### 7. Publication Export
 
 **Location:** `validation/`, `rules/export-formats.md`
 
@@ -195,7 +220,7 @@ sequenceDiagram
     User->>Skill: Figure brief
     Skill->>KB: Load domain pack (if applicable)
     Skill->>FSL: Generate specification
-    FSL->>Ont: Build entity graph
+    FSL->>Ont: Compile via FigureCompiler
     Ont->>Val: Pre-export checks
     Val-->>Skill: Pass / fail report
     Skill->>Render: Validated ontology graph
@@ -211,12 +236,12 @@ sequenceDiagram
 |-----------|----------|----------------|
 | FSL engine | `src/figure_agent/fsl/` | v0.3 |
 | Figure ontology | `src/figure_agent/ontology/` | v0.4 |
-| Knowledge packs | `knowledge/` | v0.5 |
-| FSL schema (complete) | `fsl/schema.yaml` | v0.5 |
-| Figure compiler | `src/figure_agent/compiler/` | v0.5 (planned) |
-| BioRender MCP | External | v0.6 |
-| Image generation / renderer | External | v0.7 |
-| Validation engine | `validation/` + engine | v0.8 |
+| Figure compiler | `src/figure_agent/compiler/` | v0.5 |
+| Knowledge packs | `knowledge/` | v0.6 |
+| FSL schema (complete) | `fsl/schema.yaml` | v0.6 |
+| BioRender MCP | External | v0.7 |
+| Image generation / renderer | External | v0.8 |
+| Validation engine | `validation/` + engine | v0.9 |
 | Full agent | `CLAUDE.md` + pipeline | v1.0 |
 
 ---

@@ -28,7 +28,7 @@ Track planned milestones from repository scaffold through full Scientific Figure
 | v0.2 | Platform architecture | Complete | `docs/`, `knowledge/`, `fsl/`, `.github/` platform layer |
 | v0.3 | FSL engine | Complete | Python package: parse, validate, serialize figure specifications |
 | v0.4 | Scientific figure ontology | Complete | Typed entities, relationships, registry, structural validation |
-| v0.5 | Figure compilation engine | Planned | FSL → ontology graph transformation |
+| v0.5 | Figure compilation engine | Complete | FSL → ontology graph transformation |
 | v0.6 | Knowledge base | Planned | Populated knowledge packs with user-supplied domain content |
 | v0.7 | BioRender integration | Planned | MCP connector for illustration asset references |
 | v0.8 | Image generation | Planned | Ontology-to-render pipeline for figure assets |
@@ -59,11 +59,13 @@ Track planned milestones from repository scaffold through full Scientific Figure
 - [x] `src/figure_agent/ontology/` — entities, relationships, registry, validator
 - [x] Ontology serialization and unit tests
 
-### v0.5 — Figure Compilation Engine (Planned)
+### v0.5 — Figure Compilation Engine (Complete)
 
-- [ ] `src/figure_agent/compiler/` — compiler, mapping, context, validator
-- [ ] FSL-to-ontology mapping layer
-- [ ] Unit tests for compilation pipeline
+- [x] `src/figure_agent/compiler/` — compiler, mapping, context, validator
+- [x] FSL panels, slots, styles → ontology entities
+- [x] Namespaced ID assignment and qualified object registry
+- [x] Orphan slot and missing reference detection
+- [x] Unit tests: simple/multi-panel compile, layout mapping, graph consistency
 
 ### v0.6 — Knowledge Base (Planned)
 

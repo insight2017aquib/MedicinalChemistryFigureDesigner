@@ -2,7 +2,7 @@
 
 A modular platform for designing publication-quality scientific figures for medicinal chemistry and molecular biology review articles. Built as a Claude Skill with a staged pipeline from user brief to validated, export-ready figures.
 
-**Current status:** v0.4 — Scientific figure ontology (FSL + ontology layers)
+**Current status:** v0.5 — Figure compilation engine (FSL → ontology)
 
 **Repository:** [github.com/insight2017aquib/MedicinalChemistryFigureDesigner](https://github.com/insight2017aquib/MedicinalChemistryFigureDesigner)
 
@@ -16,6 +16,7 @@ MedicinalChemistryFigureDesigner is a **scientific figure platform**, not a cont
 - **Modular documentation** for styles, rules, templates, validation, and prompts
 - A **Figure Specification Language (FSL)** engine (`src/figure_agent/fsl/`) for parsing, validating, and serializing figure specifications
 - A **Scientific figure ontology** (`src/figure_agent/ontology/`) for typed entities and relationships
+- A **Figure compiler** (`src/figure_agent/compiler/`) that transforms FSL documents into ontology graphs
 
 - **Knowledge packs** for domain-specific conventions (user-supplied content only)
 - A **staged pipeline** toward automated rendering, validation, and export
@@ -43,7 +44,7 @@ Review-article figures require consistent visual language, structural compliance
 | v0.2 | Platform architecture | Complete |
 | v0.3 | FSL engine | Complete |
 | v0.4 | Scientific figure ontology | Complete |
-| v0.5 | Figure compilation engine | Planned |
+| v0.5 | Figure compilation engine | Complete |
 | v0.6 | Knowledge base | Planned |
 | v0.7 | BioRender integration | Planned |
 | v0.8 | Image generation | Planned |
@@ -59,7 +60,8 @@ See [docs/DevelopmentRoadmap.md](docs/DevelopmentRoadmap.md) for milestone detai
 ```mermaid
 flowchart TD
     A[Claude Skill] --> B[Figure Specification Language]
-    B --> O[Ontology]
+    B --> C[Compiler]
+    C --> O[Ontology]
     O --> R[Renderer]
     R --> E[Scientific Validation]
     E --> F[Publication Export]
@@ -87,6 +89,7 @@ MedicinalChemistryFigureDesigner/
 ├── src/figure_agent/          # Python package
 │   ├── fsl/                   # FSL parser, validator, serializer, models
 │   ├── ontology/              # Entity models, relationships, registry
+│   ├── compiler/              # FSL-to-ontology compilation
 │   └── core/                  # Constants and shared types
 │
 ├── tests/                     # Unit tests for FSL and ontology
@@ -157,9 +160,19 @@ The FSL engine is a **structured representation layer** — not a rendering engi
 
 The ontology sits between FSL and future renderers.
 
+### Compilation Engine (v0.5 — executable)
+
+| Component | Purpose |
+|-----------|---------|
+| `compiler/compiler.py` | `FigureCompiler`, `compile_figure()` |
+| `compiler/mapping.py` | FSL panels, slots, and styles → ontology entities |
+| `compiler/context.py` | Compilation state, ID registry, namespacing |
+| `compiler/validator.py` | Orphan detection, missing refs, graph consistency |
+
 ```mermaid
 flowchart LR
-    FSL[FSL Document] --> Ontology[Ontology Graph]
+    FSL[FSL Document] --> Compiler[FigureCompiler]
+    Compiler --> Ontology[Ontology Graph]
     Ontology --> Renderer[Future Renderer]
 ```
 
@@ -175,10 +188,13 @@ pytest
 ```
 
 ```python
-from figure_agent import Cell, Label, Relationship, RelationshipType, load_yaml, parse, to_yaml
+from figure_agent import compile_figure, load_yaml, parse, to_yaml
 
 figure = parse(load_yaml("examples/minimal_figure.yaml"))
 print(to_yaml(figure))
+
+graph = compile_figure(figure)
+print(f"Compiled {len(graph.entities)} entities")
 ```
 
 ---

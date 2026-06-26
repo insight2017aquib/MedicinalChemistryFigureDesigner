@@ -24,11 +24,30 @@ Format based on [Keep a Changelog](https://keepachangelog.com/). Versioning alig
 
 ### Added
 
-- Figure compilation engine (v0.5, planned)
+- (none yet)
 
 ### Changed
 
 - (none yet)
+
+---
+
+## [v0.5] — Figure Compilation Engine
+
+### Added
+
+- `src/figure_agent/compiler/` — `FigureCompiler`, mapping, context, validator
+- Unit tests: `test_compiler.py`, `test_compiler_mapping.py`
+
+### Changed
+
+- Package version `0.5.0`
+- `README.md`, `docs/Architecture.md`, `docs/DevelopmentRoadmap.md` — compiler pipeline documentation
+
+### Notes
+
+- Pipeline: FSL → Compiler → Ontology → Renderer (planned)
+- No rendering, biology, or external integrations
 
 ---
 

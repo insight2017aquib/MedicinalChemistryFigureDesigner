@@ -1,5 +1,6 @@
 """Figure Agent — scientific figure specification toolkit."""
 
+from figure_agent.compiler import FigureCompiler, compile_figure
 from figure_agent.fsl.models import Figure
 from figure_agent.fsl.parser import load_json, load_yaml, parse, validate_schema
 from figure_agent.fsl.serializer import to_json, to_yaml
@@ -22,12 +23,14 @@ __all__ = [
     "Cell",
     "EntityRegistry",
     "Figure",
+    "FigureCompiler",
     "FSLValidator",
     "Label",
     "OntologyGraph",
     "OntologyValidator",
     "Relationship",
     "RelationshipType",
+    "compile_figure",
     "create_entity",
     "graph_from_dict",
     "graph_to_json",
@@ -40,4 +43,4 @@ __all__ = [
     "validate_schema",
 ]
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
