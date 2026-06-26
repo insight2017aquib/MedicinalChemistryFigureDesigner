@@ -15,7 +15,7 @@ Describe the end-to-end architecture of the MedicinalChemistryFigureDesigner pla
 
 **Out of scope:**
 
-- Implementation code
+- Rendering implementation
 - Scientific content or domain knowledge
 - Journal-specific export requirements
 
@@ -36,6 +36,7 @@ flowchart TD
     subgraph repo [This Repository]
         A
         B
+        B2[src/figure_agent/]
         E
         G[styles/]
         H[rules/]
@@ -44,6 +45,8 @@ flowchart TD
         K[validation/]
         L[prompts/]
     end
+
+    B --> B2
 
     subgraph external [Planned Integrations]
         C
@@ -71,9 +74,29 @@ The entry point for interactive figure design sessions. The skill routes user re
 
 ### 2. Figure Specification Language (FSL)
 
-**Location:** `fsl/`
+**Documentation:** `fsl/` (schema skeleton, validator spec)
+
+**Implementation:** `src/figure_agent/fsl/` (v0.3 engine)
 
 A structured description language for scientific figures. FSL captures layout, style references, content slots, and metadata in a machine-readable format. It bridges human intent and automated rendering.
+
+The v0.3 FSL engine provides:
+
+| Module | Responsibility |
+|--------|----------------|
+| `models.py` | Pydantic models (`Figure`, `Metadata`, `Panel`, `Layout`, etc.) |
+| `parser.py` | Load YAML/JSON, schema validation, full parse pipeline |
+| `validator.py` | Semantic checks: duplicate IDs, layout consistency, template refs |
+| `serializer.py` | Serialize to YAML/JSON with round-trip consistency |
+
+```mermaid
+flowchart LR
+    YAML[YAML / JSON file] --> Parser[parser.py]
+    Parser --> Models[models.py Figure]
+    Models --> Validator[validator.py]
+    Validator -->|pass| Serializer[serializer.py]
+    Serializer --> Output[YAML / JSON]
+```
 
 ### 3. BioRender MCP
 
@@ -163,11 +186,12 @@ sequenceDiagram
 
 | Extension | Location | Version Target |
 |-----------|----------|----------------|
-| Knowledge packs | `knowledge/` | v0.3 |
-| FSL schema | `fsl/schema.yaml` | v0.4 |
+| FSL engine | `src/figure_agent/fsl/` | v0.3 |
+| Knowledge packs | `knowledge/` | v0.4 |
+| FSL schema (complete) | `fsl/schema.yaml` | v0.4 |
 | BioRender MCP | External | v0.5 |
 | Image generation | External | v0.6 |
-| Validation engine | `validation/` | v0.7 |
+| Validation engine | `validation/` + engine | v0.7 |
 | Full agent | `CLAUDE.md` + pipeline | v1.0 |
 
 ---

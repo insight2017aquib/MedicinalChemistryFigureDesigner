@@ -32,6 +32,27 @@ Format based on [Keep a Changelog](https://keepachangelog.com/). Versioning alig
 
 ---
 
+## [v0.3] — FSL Engine
+
+### Added
+
+- `src/figure_agent/` — Python package with FSL parser, validator, serializer, and Pydantic models
+- `tests/` — Unit tests for parser, validator, and serialization round-trip
+- `examples/minimal_figure.yaml` — Minimal valid FSL document with neutral placeholders
+- `pyproject.toml` — Python 3.12+ project configuration (Pydantic v2, PyYAML)
+
+### Changed
+
+- `README.md`, `docs/Architecture.md`, `docs/DevelopmentRoadmap.md` — document FSL engine placement in pipeline
+- `.gitignore` — Python tooling artifacts
+
+### Notes
+
+- FSL engine is a structured representation layer, not a rendering engine
+- No scientific content, biology validation, or external rendering integrations
+
+---
+
 ## [v0.2] — Platform Architecture
 
 ### Added

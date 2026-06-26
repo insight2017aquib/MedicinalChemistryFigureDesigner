@@ -1,0 +1,48 @@
+"""Shared helpers for FSL engine tests."""
+
+from __future__ import annotations
+
+from typing import Any
+
+
+def valid_document() -> dict[str, Any]:
+    """Return a minimal valid FSL document dictionary."""
+    return {
+        "fsl_version": "0.3.0",
+        "metadata": {
+            "id": "fig-001",
+            "title": "Placeholder Figure",
+            "author": "maintainer",
+        },
+        "template": {
+            "ref": "templates/single-panel.md",
+            "params": {"aspect_ratio": "4:3"},
+        },
+        "layout": {
+            "type": "single-panel",
+            "panels": [
+                {
+                    "id": "panel-a",
+                    "zones": ["primary"],
+                    "object_refs": ["slot-1"],
+                }
+            ],
+        },
+        "styles": {"refs": [{"ref": "styles/color-system.md"}], "overrides": {}},
+        "content_slots": [
+            {
+                "id": "slot-1",
+                "label": "Primary content",
+                "type": "placeholder",
+                "value": None,
+            }
+        ],
+        "rules": {"refs": ["rules/composition.md"]},
+        "validation": {
+            "refs": ["validation/pre-export-checklist.md"],
+            "required_checks": [],
+        },
+        "knowledge": {"packs": []},
+        "integrations": {},
+        "export": {"formats": ["png"], "naming": "fig-{id}"},
+    }

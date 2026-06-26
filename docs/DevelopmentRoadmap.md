@@ -25,9 +25,9 @@ Track planned milestones from repository scaffold through full Scientific Figure
 | Version | Name | Status | Summary |
 |---------|------|--------|---------|
 | v0.1 | Repository scaffold | Complete | Modular folder structure, placeholder Markdown modules |
-| v0.2 | Platform architecture | In progress | `docs/`, `knowledge/`, `fsl/`, `.github/` platform layer |
-| v0.3 | Knowledge base | Planned | Populated knowledge packs with user-supplied domain content |
-| v0.4 | Figure Specification Language | Planned | FSL schema, validator, and worked examples |
+| v0.2 | Platform architecture | Complete | `docs/`, `knowledge/`, `fsl/`, `.github/` platform layer |
+| v0.3 | FSL engine | In progress | Python package: parse, validate, serialize figure specifications |
+| v0.4 | Knowledge base | Planned | Populated knowledge packs with user-supplied domain content |
 | v0.5 | BioRender integration | Planned | MCP connector for BioRender asset references |
 | v0.6 | Image generation | Planned | Rendering pipeline from FSL to figure assets |
 | v0.7 | Validation engine | Planned | Automated validation against rules and FSL schema |
@@ -44,28 +44,33 @@ Track planned milestones from repository scaffold through full Scientific Figure
 - [x] Placeholder documentation per module
 - [x] GitHub repository initialized
 
-### v0.2 — Platform Architecture (In Progress)
+### v0.2 — Platform Architecture (Complete)
 
 - [x] `docs/` project documentation
 - [x] `knowledge/` placeholder knowledge packs
 - [x] `fsl/` skeleton specification language
 - [x] `.github/` issue and PR templates
-- [ ] Cross-module index in root `README.md`
-- [ ] Changelog entry for v0.2
+- [x] Cross-module index in root `README.md`
+- [x] Changelog entry for v0.2
 
-### v0.3 — Knowledge Base (Planned)
+### v0.3 — FSL Engine (In Progress)
+
+- [x] `src/figure_agent/` Python package
+- [x] Pydantic models (`Figure`, `Metadata`, `Panel`, `Layout`, etc.)
+- [x] Parser (`load_yaml`, `load_json`, `validate_schema`, `parse`)
+- [x] Semantic validator (IDs, layout, template references)
+- [x] Serializer (YAML/JSON round-trip)
+- [x] Unit tests (`tests/`)
+- [x] `examples/minimal_figure.yaml`
+- [ ] CLI interface (optional, future)
+- [ ] Integration with `prompts/layout-generation.md` output format
+
+### v0.4 — Knowledge Base (Planned)
 
 - [ ] Knowledge pack schema and metadata format
 - [ ] User-supplied content ingestion guidelines
 - [ ] Pack versioning and attribution requirements
 - [ ] Integration hooks in `prompts/` and `fsl/`
-
-### v0.4 — Figure Specification Language (Planned)
-
-- [ ] Complete `fsl/schema.yaml`
-- [ ] FSL validator implementation
-- [ ] Example specifications in `fsl/examples/`
-- [ ] FSL reference documentation
 
 ### v0.5 — BioRender Integration (Planned)
 
@@ -82,8 +87,8 @@ Track planned milestones from repository scaffold through full Scientific Figure
 ### v0.7 — Validation Engine (Planned)
 
 - [ ] Automated checklist runner
-- [ ] FSL schema validation
-- [ ] Rule compliance reporting
+- [ ] Extended FSL and rule compliance reporting
+- [ ] CI workflow integration
 
 ### v1.0 — Scientific Figure Agent (Planned)
 
@@ -98,13 +103,13 @@ Track planned milestones from repository scaffold through full Scientific Figure
 ```mermaid
 flowchart LR
     v01[v0.1 Scaffold] --> v02[v0.2 Platform]
-    v02 --> v03[v0.3 Knowledge]
-    v02 --> v04[v0.4 FSL]
-    v03 --> v04
-    v04 --> v05[v0.5 BioRender]
-    v04 --> v06[v0.6 Image Gen]
+    v02 --> v03[v0.3 FSL Engine]
+    v02 --> v04[v0.4 Knowledge]
+    v03 --> v05[v0.5 BioRender]
+    v03 --> v06[v0.6 Image Gen]
+    v04 --> v06
     v05 --> v06
-    v04 --> v07[v0.7 Validation]
+    v03 --> v07[v0.7 Validation]
     v06 --> v07
     v07 --> v10[v1.0 Agent]
 ```

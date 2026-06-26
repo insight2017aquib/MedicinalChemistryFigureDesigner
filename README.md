@@ -2,7 +2,7 @@
 
 A modular platform for designing publication-quality scientific figures for medicinal chemistry and molecular biology review articles. Built as a Claude Skill with a staged pipeline from user brief to validated, export-ready figures.
 
-**Current status:** v0.2 — Platform architecture (scaffold + platform layer)
+**Current status:** v0.3 — FSL engine (executable Python package)
 
 **Repository:** [github.com/insight2017aquib/MedicinalChemistryFigureDesigner](https://github.com/insight2017aquib/MedicinalChemistryFigureDesigner)
 
@@ -14,7 +14,7 @@ MedicinalChemistryFigureDesigner is a **scientific figure platform**, not a cont
 
 - A **Claude Skill** entry point for interactive figure design sessions
 - **Modular documentation** for styles, rules, templates, validation, and prompts
-- A **Figure Specification Language (FSL)** for machine-readable figure descriptions
+- A **Figure Specification Language (FSL)** engine (`src/figure_agent/`) for parsing, validating, and serializing figure specifications
 - **Knowledge packs** for domain-specific conventions (user-supplied content only)
 - A **staged pipeline** toward automated rendering, validation, and export
 
@@ -38,9 +38,9 @@ Review-article figures require consistent visual language, structural compliance
 | Version | Milestone | Status |
 |---------|-----------|--------|
 | v0.1 | Repository scaffold | Complete |
-| v0.2 | Platform architecture | In progress |
-| v0.3 | Knowledge base | Planned |
-| v0.4 | Figure Specification Language | Planned |
+| v0.2 | Platform architecture | Complete |
+| v0.3 | FSL engine | In progress |
+| v0.4 | Knowledge base | Planned |
 | v0.5 | BioRender integration | Planned |
 | v0.6 | Image generation | Planned |
 | v0.7 | Validation engine | Planned |
@@ -80,7 +80,14 @@ MedicinalChemistryFigureDesigner/
 │   ├── Contributing.md
 │   └── Changelog.md
 │
-├── fsl/                       # Figure Specification Language
+├── src/figure_agent/          # Python package (FSL engine)
+│   ├── fsl/                   # Parser, validator, serializer, models
+│   └── core/                  # Constants and shared types
+│
+├── tests/                     # Unit tests for the FSL engine
+├── pyproject.toml             # Python project configuration
+│
+├── fsl/                       # FSL schema documentation
 │   ├── schema.yaml
 │   ├── validator.md
 │   └── examples/
@@ -97,7 +104,8 @@ MedicinalChemistryFigureDesigner/
 ├── templates/                 # Reusable layout templates
 ├── validation/                # Pre-export quality gates
 ├── prompts/                   # Claude prompt templates per workflow stage
-├── examples/                  # Worked figure specimens (user-supplied)
+├── examples/                  # FSL examples and worked figure specimens
+│   └── minimal_figure.yaml    # Minimal valid FSL document
 │
 └── .github/                   # Issue templates, PR template, workflows
 ```
@@ -113,14 +121,43 @@ MedicinalChemistryFigureDesigner/
 | `prompts/` | Stage-specific Claude prompt templates |
 | `examples/` | Index and specimen notes for future examples |
 
-### Platform Extensions (v0.2 — new)
+### Platform Extensions (v0.2+)
 
 | Module | Purpose |
 |--------|---------|
 | `docs/` | Architecture, roadmap, principles, contributing, changelog |
-| `fsl/` | Figure Specification Language skeleton |
+| `fsl/` | FSL schema documentation and specification skeleton |
 | `knowledge/` | Placeholder packs for domain conventions |
 | `.github/` | Issue templates, PR template, workflows placeholder |
+
+### FSL Engine (v0.3 — executable)
+
+| Component | Purpose |
+|-----------|---------|
+| `src/figure_agent/fsl/models.py` | Pydantic models (`Figure`, `Panel`, `Layout`, etc.) |
+| `src/figure_agent/fsl/parser.py` | `load_yaml`, `load_json`, `validate_schema`, `parse` |
+| `src/figure_agent/fsl/validator.py` | Semantic validation (IDs, layout, template refs) |
+| `src/figure_agent/fsl/serializer.py` | YAML/JSON serialization and round-trip |
+
+The FSL engine is a **structured representation layer** — not a rendering engine. It sits between the Claude Skill and future rendering integrations.
+
+---
+
+## FSL Engine Quick Start
+
+Requires Python 3.12+.
+
+```bash
+pip install -e ".[dev]"
+pytest
+```
+
+```python
+from figure_agent import load_yaml, parse, to_yaml
+
+figure = parse(load_yaml("examples/minimal_figure.yaml"))
+print(to_yaml(figure))
+```
 
 ---
 
