@@ -1,0 +1,31 @@
+# OS-generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor and IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary and cache files
+*.tmp
+*.bak
+.cache/
+
+# Environment and secrets
+.env
+.env.*
+*.pem
+
+# Generated figure exports (keep source Markdown tracked)
+exports/
+output/
+dist/
+
+# Tooling artifacts (if scripts are added later)
+__pycache__/
+*.pyc
+node_modules/
