@@ -31,10 +31,12 @@ from figure_agent.ontology import (
 from figure_agent.renderers import (
     GPTImagePromptBuilder,
     GPTImagePromptRenderer,
+    GPTImageRenderer,
     RenderConfig,
     RenderResult,
     Renderer,
     SVGRenderer,
+    create_gpt_image_renderer,
 )
 
 __all__ = [
@@ -45,6 +47,7 @@ __all__ = [
     "FSLValidator",
     "GPTImagePromptBuilder",
     "GPTImagePromptRenderer",
+    "GPTImageRenderer",
     "Label",
     "OntologyGraph",
     "OntologyValidator",
@@ -57,6 +60,7 @@ __all__ = [
     "compile",
     "compile_figure",
     "create_entity",
+    "create_gpt_image_renderer",
     "export",
     "generate_fsl",
     "health",

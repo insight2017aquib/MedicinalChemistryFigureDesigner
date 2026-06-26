@@ -10,7 +10,10 @@ from figure_agent.renderers.exceptions import (
 from figure_agent.renderers.gpt_image import (
     GPTImagePromptBuilder,
     GPTImagePromptRenderer,
+    GPTImageRenderer,
     ImagePromptSpec,
+    StubImageBackend,
+    create_gpt_image_renderer,
 )
 from figure_agent.renderers.scene import (
     SceneBuildError,
@@ -23,7 +26,10 @@ __all__ = [
     "GPTImagePromptBuilder",
     "GPTImagePromptError",
     "GPTImagePromptRenderer",
+    "GPTImageRenderer",
     "ImagePromptSpec",
+    "StubImageBackend",
+    "create_gpt_image_renderer",
     "LayoutError",
     "RenderConfig",
     "RenderError",

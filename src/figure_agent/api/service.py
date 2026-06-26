@@ -44,7 +44,7 @@ from figure_agent.fsl.validator import FSLValidator
 from figure_agent.ontology.registry import graph_from_dict, graph_to_dict
 from figure_agent.ontology.relationships import OntologyGraph
 from figure_agent.renderers.base import RenderConfig, Renderer
-from figure_agent.renderers.gpt_image import GPTImagePromptRenderer
+from figure_agent.renderers.gpt_image import GPTImagePromptRenderer, GPTImageRenderer
 from figure_agent.renderers.svg_renderer import SVGRenderer
 
 FSLSource = dict[str, Any] | str | Figure
@@ -87,6 +87,8 @@ def _ensure_default_renderers() -> None:
         register_renderer("svg", SVGRenderer)
     if "gptimage" not in _RENDERER_REGISTRY:
         register_renderer("gptimage", GPTImagePromptRenderer)
+    if "gpt-image" not in _RENDERER_REGISTRY:
+        register_renderer("gpt-image", GPTImageRenderer)
 
 
 def _resolve_renderer(name: str) -> Renderer:
