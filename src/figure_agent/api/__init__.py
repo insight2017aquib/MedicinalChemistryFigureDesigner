@@ -1,0 +1,71 @@
+"""Public Figure Agent API."""
+
+from figure_agent.api.exceptions import (
+    APIError,
+    CompilationAPIError,
+    ExportAPIError,
+    InvalidInputError,
+    RenderAPIError,
+    UnknownRendererError,
+)
+from figure_agent.api.requests import (
+    ContentSlotSpec,
+    ExportRequest,
+    GenerateFSLRequest,
+    RenderRequest,
+    ValidateFSLRequest,
+)
+from figure_agent.api.responses import (
+    CompileResponse,
+    ExportResponse,
+    GenerateFSLResponse,
+    HealthResponse,
+    RenderResponse,
+    ValidationResponse,
+    VersionResponse,
+)
+from figure_agent.api.service import (
+    compile,
+    export,
+    generate_fsl,
+    health,
+    list_renderers,
+    register_renderer,
+    render,
+    render_svg,
+    unregister_renderer,
+    validate_fsl,
+    version,
+)
+
+__all__ = [
+    "APIError",
+    "CompilationAPIError",
+    "CompileResponse",
+    "ContentSlotSpec",
+    "ExportAPIError",
+    "ExportRequest",
+    "ExportResponse",
+    "GenerateFSLRequest",
+    "GenerateFSLResponse",
+    "HealthResponse",
+    "InvalidInputError",
+    "RenderAPIError",
+    "RenderRequest",
+    "RenderResponse",
+    "UnknownRendererError",
+    "ValidateFSLRequest",
+    "ValidationResponse",
+    "VersionResponse",
+    "compile",
+    "export",
+    "generate_fsl",
+    "health",
+    "list_renderers",
+    "register_renderer",
+    "render",
+    "render_svg",
+    "unregister_renderer",
+    "validate_fsl",
+    "version",
+]

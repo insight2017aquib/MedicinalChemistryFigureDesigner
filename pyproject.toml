@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "figure-agent"
-version = "0.6.0"
-description = "FSL engine, ontology, compiler, and SVG renderer for publication figure design"
+version = "0.7.0"
+description = "FSL engine, ontology, compiler, SVG renderer, and public API for publication figure design"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }

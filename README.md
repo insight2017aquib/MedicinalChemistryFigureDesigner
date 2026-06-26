@@ -2,7 +2,7 @@
 
 A modular platform for designing publication-quality scientific figures for medicinal chemistry and molecular biology review articles. Built as a Claude Skill with a staged pipeline from user brief to validated, export-ready figures.
 
-**Current status:** v0.6 — Minimal SVG renderer (FSL → ontology → SVG)
+**Current status:** v0.7 — Figure Agent API (stable interface for any LLM or tool)
 
 **Repository:** [github.com/insight2017aquib/MedicinalChemistryFigureDesigner](https://github.com/insight2017aquib/MedicinalChemistryFigureDesigner)
 
@@ -18,6 +18,7 @@ MedicinalChemistryFigureDesigner is a **scientific figure platform**, not a cont
 - A **Scientific figure ontology** (`src/figure_agent/ontology/`) for typed entities and relationships
 - A **Figure compiler** (`src/figure_agent/compiler/`) that transforms FSL documents into ontology graphs
 - A **Minimal SVG renderer** (`src/figure_agent/renderers/`) that renders ontology graphs to SVG
+- A **Public API** (`src/figure_agent/api/`) exposing the full pipeline to any LLM or automation tool
 - **Knowledge packs** for domain-specific conventions (user-supplied content only)
 - A **staged pipeline** toward automated rendering, validation, and export
 
@@ -46,10 +47,11 @@ Review-article figures require consistent visual language, structural compliance
 | v0.4 | Scientific figure ontology | Complete |
 | v0.5 | Figure compilation engine | Complete |
 | v0.6 | Minimal SVG renderer | Complete |
-| v0.7 | Knowledge base | Planned |
-| v0.8 | BioRender integration | Planned |
-| v0.9 | Validation engine | Planned |
-| v1.0 | Scientific Figure Agent | Planned |
+| v0.7 | Figure Agent API | Complete |
+| v0.8 | Knowledge base | Planned |
+| v0.9 | BioRender integration | Planned |
+| v1.0 | Validation engine | Planned |
+| v1.1 | Scientific Figure Agent | Planned |
 
 See [docs/DevelopmentRoadmap.md](docs/DevelopmentRoadmap.md) for milestone details.
 
@@ -59,13 +61,18 @@ See [docs/DevelopmentRoadmap.md](docs/DevelopmentRoadmap.md) for milestone detai
 
 ```mermaid
 flowchart TD
-    A[Claude Skill] --> B[Figure Specification Language]
+    LLM[Any LLM or Tool] --> API[Figure Agent API]
+    API --> B[Figure Specification Language]
     B --> C[Compiler]
     C --> O[Ontology]
-    O --> R[SVG Renderer]
-    R --> E[Scientific Validation]
+    O --> R[Renderer Registry]
+    R --> SVG[SVG Renderer]
+    R --> Future[Future Renderers]
+    SVG --> E[Scientific Validation]
     E --> F[Publication Export]
 ```
+
+The **Figure Agent API** is the stable entry point. LLMs, scripts, and IDE extensions call `generate_fsl()`, `validate_fsl()`, `compile()`, `render()`, and `export()` without importing internal modules directly.
 
 Full architecture with module diagrams: [docs/Architecture.md](docs/Architecture.md)
 
@@ -91,6 +98,7 @@ MedicinalChemistryFigureDesigner/
 │   ├── ontology/              # Entity models, relationships, registry
 │   ├── compiler/              # FSL-to-ontology compilation
 │   ├── renderers/             # SVG and future renderer backends
+│   ├── api/                   # Public API (service, requests, responses)
 │   └── core/                  # Constants and shared types
 │
 ├── scripts/                   # CLI demos
@@ -190,36 +198,133 @@ flowchart LR
     SVG --> File[output/example.svg]
 ```
 
-Future renderers (`BioRenderRenderer`, `GPTImageRenderer`, etc.) will inherit from `Renderer`.
+Future renderers (`BioRenderRenderer`, `GPTImageRenderer`, etc.) register via `register_renderer()` and are invoked through `render(renderer="name")`.
+
+### Figure Agent API (v0.7 — executable)
+
+| Function | Purpose |
+|----------|---------|
+| `generate_fsl()` | Build a minimal valid FSL document from parameters |
+| `validate_fsl()` | Validate FSL (dict, YAML/JSON string, or `Figure`) |
+| `compile()` | Compile FSL into an ontology graph |
+| `render_svg()` | Render to SVG (shortcut for `render(renderer="svg")`) |
+| `render()` | Render via any registered backend |
+| `export()` | Render and write output to disk |
+| `health()` | Service health and capability check |
+| `version()` | Package and API version metadata |
+| `register_renderer()` | Register future renderer backends |
 
 ---
 
-## Python Package Quick Start
+## Quick Start
 
 Requires Python 3.12+.
 
 ```bash
 pip install -e ".[dev]"
 pytest
+python scripts/render_example.py
 ```
+
+### Python Examples
+
+**Health check and version:**
+
+```python
+from figure_agent import health, version
+
+print(health())   # status, components, available renderers
+print(version())  # package version, API version, renderers
+```
+
+**Generate and validate FSL:**
+
+```python
+from figure_agent import generate_fsl, validate_fsl
+from figure_agent.api import GenerateFSLRequest, ContentSlotSpec
+
+generated = generate_fsl(
+    GenerateFSLRequest(
+        figure_id="fig-demo",
+        title="Demo Figure",
+        slots=(ContentSlotSpec(id="slot-1", label="Primary content"),),
+    )
+)
+result = validate_fsl(generated.document)
+assert result.valid
+```
+
+**Compile, render, and export:**
+
+```python
+from figure_agent import compile, render_svg, export, load_yaml, parse
+
+figure = parse(load_yaml("examples/minimal_figure.yaml"))
+
+compiled = compile(figure)
+assert compiled.success
+
+rendered = render_svg(compiled.graph)
+assert rendered.success and "<svg" in rendered.content
+
+export(compiled.graph, "output/example.svg")
+```
+
+**Pluggable renderers (future backends):**
+
+```python
+from figure_agent import render, register_renderer
+from figure_agent.renderers import Renderer
+
+# register_renderer("biorender", BioRenderRenderer)
+# register_renderer("gptimage", GPTImageRenderer)
+
+result = render(figure, renderer="svg")  # or "biorender", "pptx", etc.
+```
+
+### Low-level module access
+
+Internal modules remain available for advanced use:
 
 ```python
 from figure_agent import compile_figure, load_yaml, parse, to_yaml
 
 figure = parse(load_yaml("examples/minimal_figure.yaml"))
-print(to_yaml(figure))
-
 graph = compile_figure(figure)
 print(f"Compiled {len(graph.entities)} entities")
 ```
 
-### Render to SVG
+---
 
-```bash
-python scripts/render_example.py
+## Public API
+
+Import from the top-level package or `figure_agent.api`:
+
+```python
+from figure_agent import (
+    compile,
+    export,
+    generate_fsl,
+    health,
+    render,
+    render_svg,
+    validate_fsl,
+    version,
+)
 ```
 
-Produces `output/example.svg` with panel boundaries, labels, boxes, and arrows.
+| Function | Input | Output |
+|----------|-------|--------|
+| `generate_fsl(request?)` | Optional `GenerateFSLRequest` | `GenerateFSLResponse` (dict, YAML, JSON) |
+| `validate_fsl(source)` | `Figure`, dict, or YAML/JSON string | `ValidationResponse` (`valid`, `errors`) |
+| `compile(source)` | FSL source | `CompileResponse` (`graph`, counts) |
+| `render(source, renderer="svg")` | FSL or graph, renderer name | `RenderResponse` (content, dimensions) |
+| `render_svg(source)` | FSL or graph | `RenderResponse` |
+| `export(source, path)` | FSL or graph, file path | `ExportResponse` |
+| `health()` | — | `HealthResponse` |
+| `version()` | — | `VersionResponse` |
+
+Validation and compile/render failures return structured responses by default. Pass `raise_on_error=True` to raise `APIError` subclasses.
 
 ---
 
@@ -227,10 +332,10 @@ Produces `output/example.svg` with panel boundaries, labels, boxes, and arrows.
 
 | Integration | Milestone | Description |
 |-------------|-----------|-------------|
-| BioRender MCP | v0.8 | `BioRenderRenderer` for illustration assets via Model Context Protocol |
+| BioRender MCP | v0.9 | `BioRenderRenderer` via `register_renderer("biorender", ...)` |
 | Advanced renderers | v0.9+ | `GPTImageRenderer`, `PowerPointRenderer`, and other `Renderer` backends |
-| Validation engine | v0.9 | Automated FSL and rule compliance checking |
-| Publication export | v1.0 | End-to-end packaging with metadata and format compliance |
+| Validation engine | v1.0 | Automated FSL and rule compliance checking |
+| Publication export | v1.1 | End-to-end packaging with metadata and format compliance |
 
 ---
 

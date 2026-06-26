@@ -32,6 +32,29 @@ Format based on [Keep a Changelog](https://keepachangelog.com/). Versioning alig
 
 ---
 
+## [v0.7] — Figure Agent API
+
+### Added
+
+- `src/figure_agent/api/` — `service`, `requests`, `responses`, `exceptions`
+- Public functions: `generate_fsl`, `validate_fsl`, `compile`, `render`, `render_svg`, `export`, `health`, `version`
+- Pluggable renderer registry: `register_renderer`, `list_renderers`
+- Unit tests: `test_api.py`
+
+### Changed
+
+- Package version `0.7.0`
+- `README.md`, `docs/Architecture.md`, `docs/DevelopmentRoadmap.md` — API layer documentation
+- Top-level `figure_agent` package exports public API functions
+
+### Notes
+
+- No web framework, MCP, or external integrations — local Python API only
+- Future renderers register via `register_renderer()` and are called with `render(renderer="name")`
+- Validation and pipeline failures return structured responses by default
+
+---
+
 ## [v0.6] — Minimal SVG Renderer
 
 ### Added

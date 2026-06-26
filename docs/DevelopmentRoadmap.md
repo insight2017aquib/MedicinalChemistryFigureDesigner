@@ -30,10 +30,11 @@ Track planned milestones from repository scaffold through full Scientific Figure
 | v0.4 | Scientific figure ontology | Complete | Typed entities, relationships, registry, structural validation |
 | v0.5 | Figure compilation engine | Complete | FSL → ontology graph transformation |
 | v0.6 | Minimal SVG renderer | Complete | Ontology graph → monochrome SVG proof-of-concept |
-| v0.7 | Knowledge base | Planned | Populated knowledge packs with user-supplied domain content |
-| v0.8 | BioRender integration | Planned | MCP connector and `BioRenderRenderer` backend |
-| v0.9 | Validation engine | Planned | Automated validation against rules and FSL schema |
-| v1.0 | Scientific Figure Agent | Planned | End-to-end agent with full pipeline integration |
+| v0.7 | Figure Agent API | Complete | Stable public API for LLMs and automation tools |
+| v0.8 | Knowledge base | Planned | Populated knowledge packs with user-supplied domain content |
+| v0.9 | BioRender integration | Planned | MCP connector and `BioRenderRenderer` backend |
+| v1.0 | Validation engine | Planned | Automated validation against rules and FSL schema |
+| v1.1 | Scientific Figure Agent | Planned | End-to-end agent with full pipeline integration |
 
 ---
 
@@ -75,26 +76,33 @@ Track planned milestones from repository scaffold through full Scientific Figure
 - [x] Unit tests: SVG generation, geometry, label/arrow placement, empty and multi-panel graphs
 - [x] `scripts/render_example.py` — FSL → compile → render → `output/example.svg`
 
-### v0.7 — Knowledge Base (Planned)
+### v0.7 — Figure Agent API (Complete)
+
+- [x] `src/figure_agent/api/` — service, requests, responses, exceptions
+- [x] Public functions: `generate_fsl`, `validate_fsl`, `compile`, `render`, `render_svg`, `export`, `health`, `version`
+- [x] Pluggable renderer registry via `register_renderer()`
+- [x] Unit tests: valid/invalid FSL, compile, render, export, error handling
+
+### v0.8 — Knowledge Base (Planned)
 
 - [ ] Knowledge pack schema and metadata format
 - [ ] User-supplied content ingestion guidelines
 - [ ] Integration hooks in `prompts/` and `fsl/`
 
-### v0.8 — BioRender Integration (Planned)
+### v0.9 — BioRender Integration (Planned)
 
 - [ ] MCP server configuration
-- [ ] `BioRenderRenderer` inheriting from `Renderer`
+- [ ] `BioRenderRenderer` registered via `register_renderer("biorender", ...)`
 - [ ] Asset reference mapping in ontology entities
 
-### v0.9 — Validation Engine (Planned)
+### v1.0 — Validation Engine (Planned)
 
 - [ ] Automated checklist runner
 - [ ] Extended FSL and rule compliance reporting
 
-### v1.0 — Scientific Figure Agent (Planned)
+### v1.1 — Scientific Figure Agent (Planned)
 
-- [ ] Full pipeline orchestration in Claude Skill
+- [ ] Full pipeline orchestration via public API
 - [ ] End-to-end session workflow (brief → FSL → ontology → render → validate → export)
 
 ---
@@ -108,21 +116,23 @@ flowchart LR
     v03 --> v04[v0.4 Ontology]
     v04 --> v05[v0.5 Compiler]
     v05 --> v06[v0.6 SVG Renderer]
-    v02 --> v07[v0.7 Knowledge]
-    v06 --> v08[v0.8 BioRender]
-    v07 --> v09[v0.9 Validation]
-    v08 --> v09
-    v09 --> v10[v1.0 Agent]
+    v06 --> v07[v0.7 API]
+    v02 --> v08[v0.8 Knowledge]
+    v07 --> v09[v0.9 BioRender]
+    v08 --> v10[v1.0 Validation]
+    v09 --> v10
+    v10 --> v11[v1.1 Agent]
 ```
 
 ---
 
-## Pipeline (v0.6)
+## Pipeline (v0.7)
 
-The minimal SVG renderer validates the full architecture from specification to graphical output:
+The public API exposes the full architecture from specification to graphical output:
 
 ```
-FSL → Compiler → Ontology → SVGRenderer → output/example.svg
+generate_fsl() → validate_fsl() → compile() → render() → export()
+     FSL              FSL         Ontology    SVG/etc.    file
 ```
 
-Future renderer backends (`BioRenderRenderer`, `GPTImageRenderer`, `PowerPointRenderer`, etc.) plug into the same `Renderer` interface without changing FSL, ontology, or compiler contracts.
+Future renderer backends register via `register_renderer()` and are invoked with `render(renderer="biorender")` without changing the API surface.

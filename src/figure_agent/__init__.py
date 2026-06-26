@@ -1,5 +1,15 @@
 """Figure Agent — scientific figure specification toolkit."""
 
+from figure_agent.api import (
+    compile,
+    export,
+    generate_fsl,
+    health,
+    render,
+    render_svg,
+    validate_fsl,
+    version,
+)
 from figure_agent.compiler import FigureCompiler, compile_figure
 from figure_agent.fsl.models import Figure
 from figure_agent.fsl.parser import load_json, load_yaml, parse, validate_schema
@@ -35,17 +45,25 @@ __all__ = [
     "RenderResult",
     "Renderer",
     "SVGRenderer",
+    "compile",
     "compile_figure",
     "create_entity",
+    "export",
+    "generate_fsl",
+    "health",
     "graph_from_dict",
     "graph_to_json",
     "graph_to_yaml",
     "load_json",
     "load_yaml",
     "parse",
+    "render",
+    "render_svg",
     "to_json",
     "to_yaml",
+    "validate_fsl",
     "validate_schema",
+    "version",
 ]
 
-__version__ = "0.6.0"
+from figure_agent.core.constants import __version__

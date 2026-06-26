@@ -27,15 +27,18 @@ The platform transforms a user brief into a publication-ready figure through a s
 
 ```mermaid
 flowchart TD
-    A[Claude Skill] --> B[Figure Specification Language]
+    LLM[Any LLM or Tool] --> API[Figure Agent API]
+    A[Claude Skill] --> API
+    API --> B[Figure Specification Language]
     B --> C[Compiler]
     C --> O[Ontology]
-    O --> R[Renderer]
+    O --> R[Renderer Registry]
     R --> E[Scientific Validation]
     E --> F[Publication Export]
 
     subgraph repo [This Repository]
         A
+        API2[src/figure_agent/api/]
         B
         B2[src/figure_agent/fsl/]
         C2[src/figure_agent/compiler/]
@@ -50,6 +53,7 @@ flowchart TD
         L[prompts/]
     end
 
+    API --> API2
     B --> B2
     B --> C2
     C2 --> O2
@@ -196,13 +200,43 @@ flowchart LR
 
 Demo: `python scripts/render_example.py` writes `output/example.svg`.
 
-### 6. Scientific Validation
+### 6. Figure Agent API
+
+**Implementation:** `src/figure_agent/api/` (v0.7)
+
+Stable entry point for LLMs, scripts, and IDE extensions. Wraps FSL, compiler, and renderer layers without exposing internal module details.
+
+| Module | Responsibility |
+|--------|----------------|
+| `service.py` | `generate_fsl`, `validate_fsl`, `compile`, `render`, `export`, `health`, `version` |
+| `requests.py` | Typed request models (`GenerateFSLRequest`, `RenderRequest`, etc.) |
+| `responses.py` | Structured response models with `success` / `valid` flags |
+| `exceptions.py` | `APIError` hierarchy for optional raise-on-error mode |
+
+```mermaid
+flowchart LR
+    Client[Any LLM or Tool] --> API[api/service.py]
+    API --> FSL[fsl/]
+    API --> Compiler[compiler/]
+    API --> Registry[Renderer Registry]
+    Registry --> SVG[svg_renderer]
+    Registry --> Future[biorender / gptimage / pptx]
+```
+
+Renderer backends register at runtime:
+
+```python
+register_renderer("biorender", BioRenderRenderer)
+render(graph, renderer="biorender")
+```
+
+### 7. Scientific Validation
 
 **Location:** `validation/`, `rules/`
 
 Quality gates applied before export. Validates structural compliance, accessibility, naming, and metadata—not scientific accuracy (user-supplied).
 
-### 7. Publication Export
+### 8. Publication Export
 
 **Location:** `validation/`, `rules/export-formats.md`
 
@@ -278,12 +312,13 @@ sequenceDiagram
 | Figure ontology | `src/figure_agent/ontology/` | v0.4 |
 | Figure compiler | `src/figure_agent/compiler/` | v0.5 |
 | SVG renderer | `src/figure_agent/renderers/` | v0.6 |
-| Knowledge packs | `knowledge/` | v0.7 |
-| FSL schema (complete) | `fsl/schema.yaml` | v0.7 |
-| BioRender MCP renderer | External | v0.8 |
+| Figure Agent API | `src/figure_agent/api/` | v0.7 |
+| Knowledge packs | `knowledge/` | v0.8 |
+| FSL schema (complete) | `fsl/schema.yaml` | v0.8 |
+| BioRender MCP renderer | `register_renderer("biorender", ...)` | v0.9 |
 | Advanced renderers (image gen, export) | `src/figure_agent/renderers/` | v0.9+ |
-| Validation engine | `validation/` + engine | v0.9 |
-| Full agent | `CLAUDE.md` + pipeline | v1.0 |
+| Validation engine | `validation/` + engine | v1.0 |
+| Full agent | `CLAUDE.md` + API | v1.1 |
 
 ---
 
