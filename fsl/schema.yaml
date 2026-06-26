@@ -1,0 +1,56 @@
+# Figure Specification Language (FSL) — Schema Skeleton
+# Version: 0.2.0-draft
+# Status: Placeholder — full schema design targeted for v0.4
+#
+# This file defines the structural skeleton for FSL documents.
+# Field values below are type placeholders, not functional defaults.
+
+fsl_version: "0.2.0-draft"  # string — FSL schema version
+
+metadata:
+  id: null                  # string — unique figure specification identifier
+  title: null               # string — human-readable figure title
+  created: null             # string (ISO 8601) — creation timestamp
+  modified: null            # string (ISO 8601) — last modification timestamp
+  author: null              # string — specification author
+  provenance: []            # array — source references and attribution entries
+
+template:
+  ref: null                 # string — path to templates/ file
+  params: {}                # object — template parameter bindings
+
+layout:
+  type: null                # string — layout category (single-panel, multi-panel, etc.)
+  panels: []                # array — panel definitions
+  # panel slot structure (placeholder):
+  # - id: null              # string — panel identifier
+  #   zones: []             # array — zone definitions within panel
+
+styles:
+  refs: []                  # array — paths to styles/ files
+  overrides: {}             # object — user-supplied style overrides
+
+content_slots: []           # array — labeled content placeholders
+  # slot structure (placeholder):
+  # - id: null              # string — slot identifier
+  #   label: null           # string — human-readable slot name
+  #   type: null            # string — slot content type (text, image, structure, etc.)
+  #   value: null           # any — user-supplied content (null until populated)
+
+rules:
+  refs: []                  # array — paths to rules/ files
+
+validation:
+  refs: []                  # array — paths to validation/ files
+  required_checks: []       # array — checklist item identifiers
+
+knowledge:
+  packs: []                 # array — paths to knowledge/ pack directories
+
+integrations: {}            # object — external tool bindings (placeholder)
+  # biorender: null         # planned v0.5 — BioRender MCP reference
+  # renderer: null          # planned v0.6 — image generation backend reference
+
+export:
+  formats: []               # array — target export format identifiers
+  naming: null              # string — file naming pattern reference
