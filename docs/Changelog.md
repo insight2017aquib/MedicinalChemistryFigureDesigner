@@ -24,11 +24,30 @@ Format based on [Keep a Changelog](https://keepachangelog.com/). Versioning alig
 
 ### Added
 
-- (none yet)
+- Figure compilation engine (v0.5, planned)
 
 ### Changed
 
 - (none yet)
+
+---
+
+## [v0.4] — Scientific Figure Ontology
+
+### Added
+
+- `src/figure_agent/ontology/` — entity hierarchy, relationships, registry, validator, serialization
+- Unit tests: `test_ontology_entities.py`, `test_ontology_relationships.py`, `test_ontology_registry.py`, `test_ontology_validator.py`, `test_ontology_serialization.py`
+
+### Changed
+
+- Package version `0.4.0`
+- `README.md`, `docs/Architecture.md`, `docs/DevelopmentRoadmap.md` — ontology layer documentation
+
+### Notes
+
+- Ontology is infrastructure only: no rendering, biology, or scientific validation
+- Pipeline position: FSL → Ontology → Renderer (planned)
 
 ---
 

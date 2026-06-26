@@ -28,15 +28,16 @@ The platform transforms a user brief into a publication-ready figure through a s
 ```mermaid
 flowchart TD
     A[Claude Skill] --> B[Figure Specification Language]
-    B --> C[BioRender MCP]
-    C --> D[Image Generation]
-    D --> E[Scientific Validation]
+    B --> O[Ontology]
+    O --> R[Renderer]
+    R --> E[Scientific Validation]
     E --> F[Publication Export]
 
     subgraph repo [This Repository]
         A
         B
-        B2[src/figure_agent/]
+        B2[src/figure_agent/fsl/]
+        O2[src/figure_agent/ontology/]
         E
         G[styles/]
         H[rules/]
@@ -47,10 +48,11 @@ flowchart TD
     end
 
     B --> B2
+    B --> O2
+    O --> O2
 
     subgraph external [Planned Integrations]
-        C
-        D
+        R
         F
     end
 
@@ -98,17 +100,36 @@ flowchart LR
     Serializer --> Output[YAML / JSON]
 ```
 
-### 3. BioRender MCP
+### 3. Scientific Figure Ontology
 
-**Location:** Planned external integration (v0.5)
+**Implementation:** `src/figure_agent/ontology/` (v0.4)
 
-Model Context Protocol integration with BioRender for molecular and biological illustration assets. FSL specifications will reference BioRender-compatible element slots.
+Typed representation of figure components and their relationships. The ontology layer translates FSL content slots into structured entity graphs that future renderers consume.
 
-### 4. Image Generation
+| Module | Responsibility |
+|--------|----------------|
+| `entities.py` | Entity hierarchy (`Molecule`, `Protein`, `Label`, `Arrow`, etc.) |
+| `relationships.py` | Relationship types (`contains`, `annotates`, etc.) and `OntologyGraph` |
+| `registry.py` | Entity type registration, instance lookup, graph serialization |
+| `validator.py` | Structural checks: duplicate IDs, missing refs, cycles |
+| `enums.py` | `EntityType` and `RelationshipType` identifiers |
 
-**Location:** Planned external integration (v0.6)
+```mermaid
+flowchart LR
+    FSL[FSL Figure] --> Map[Future FSL-to-Ontology mapping]
+    Map --> Graph[OntologyGraph]
+    Graph --> Registry[EntityRegistry]
+    Registry --> Val[ontology/validator.py]
+    Val -->|pass| Renderer[Future Renderer]
+```
 
-Rendering pipeline that converts FSL specifications into raster or vector figure assets using styles, templates, and knowledge packs.
+The ontology defines **structure only** — no biological semantics, no rendering, no scientific validation.
+
+### 4. Renderer (Planned)
+
+**Location:** Planned external integration (v0.7+)
+
+Rendering pipeline that converts ontology graphs into raster or vector figure assets. May integrate BioRender MCP (v0.6) and other backends.
 
 ### 5. Scientific Validation
 
@@ -165,17 +186,19 @@ sequenceDiagram
     participant User
     participant Skill as Claude Skill
     participant FSL as FSL
+    participant Ont as Ontology
     participant KB as knowledge/
     participant Val as validation/
-    participant Render as Image Generation
+    participant Render as Renderer
     participant Export as Publication Export
 
     User->>Skill: Figure brief
     Skill->>KB: Load domain pack (if applicable)
     Skill->>FSL: Generate specification
-    FSL->>Val: Pre-export checks
+    FSL->>Ont: Build entity graph
+    Ont->>Val: Pre-export checks
     Val-->>Skill: Pass / fail report
-    Skill->>Render: Validated specification
+    Skill->>Render: Validated ontology graph
     Render->>Export: Rendered assets
     Export-->>User: Publication-ready figure
 ```
@@ -187,11 +210,13 @@ sequenceDiagram
 | Extension | Location | Version Target |
 |-----------|----------|----------------|
 | FSL engine | `src/figure_agent/fsl/` | v0.3 |
-| Knowledge packs | `knowledge/` | v0.4 |
-| FSL schema (complete) | `fsl/schema.yaml` | v0.4 |
-| BioRender MCP | External | v0.5 |
-| Image generation | External | v0.6 |
-| Validation engine | `validation/` + engine | v0.7 |
+| Figure ontology | `src/figure_agent/ontology/` | v0.4 |
+| Knowledge packs | `knowledge/` | v0.5 |
+| FSL schema (complete) | `fsl/schema.yaml` | v0.5 |
+| Figure compiler | `src/figure_agent/compiler/` | v0.5 (planned) |
+| BioRender MCP | External | v0.6 |
+| Image generation / renderer | External | v0.7 |
+| Validation engine | `validation/` + engine | v0.8 |
 | Full agent | `CLAUDE.md` + pipeline | v1.0 |
 
 ---

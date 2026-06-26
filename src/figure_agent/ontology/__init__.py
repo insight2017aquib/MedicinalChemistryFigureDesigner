@@ -1,0 +1,80 @@
+"""Scientific figure ontology layer."""
+
+from figure_agent.ontology.entities import (
+    ENTITY_MODEL_BY_TYPE,
+    Annotation,
+    Arrow,
+    BaseEntity,
+    Cell,
+    Entity,
+    GraphicalEntity,
+    ImageAsset,
+    Label,
+    Ligand,
+    Macromolecule,
+    Membrane,
+    Molecule,
+    NucleicAcid,
+    Organelle,
+    Protein,
+    Shape,
+    StructuralEntity,
+)
+from figure_agent.ontology.enums import (
+    EntityType,
+    HIERARCHICAL_RELATIONSHIPS,
+    RelationshipType,
+)
+from figure_agent.ontology.exceptions import (
+    OntologyError,
+    OntologyRegistryError,
+    OntologySerializationError,
+    OntologyValidationError,
+)
+from figure_agent.ontology.registry import (
+    EntityRegistry,
+    create_entity,
+    graph_from_dict,
+    graph_to_dict,
+    graph_to_json,
+    graph_to_yaml,
+)
+from figure_agent.ontology.relationships import OntologyGraph, Relationship
+from figure_agent.ontology.validator import OntologyValidator
+
+__all__ = [
+    "ENTITY_MODEL_BY_TYPE",
+    "Annotation",
+    "Arrow",
+    "BaseEntity",
+    "Cell",
+    "Entity",
+    "EntityRegistry",
+    "EntityType",
+    "GraphicalEntity",
+    "HIERARCHICAL_RELATIONSHIPS",
+    "ImageAsset",
+    "Label",
+    "Ligand",
+    "Macromolecule",
+    "Membrane",
+    "Molecule",
+    "NucleicAcid",
+    "OntologyError",
+    "OntologyGraph",
+    "OntologyRegistryError",
+    "OntologySerializationError",
+    "OntologyValidationError",
+    "OntologyValidator",
+    "Organelle",
+    "Protein",
+    "Relationship",
+    "RelationshipType",
+    "Shape",
+    "StructuralEntity",
+    "create_entity",
+    "graph_from_dict",
+    "graph_to_dict",
+    "graph_to_json",
+    "graph_to_yaml",
+]

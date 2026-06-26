@@ -2,7 +2,7 @@
 
 A modular platform for designing publication-quality scientific figures for medicinal chemistry and molecular biology review articles. Built as a Claude Skill with a staged pipeline from user brief to validated, export-ready figures.
 
-**Current status:** v0.3 — FSL engine (executable Python package)
+**Current status:** v0.4 — Scientific figure ontology (FSL + ontology layers)
 
 **Repository:** [github.com/insight2017aquib/MedicinalChemistryFigureDesigner](https://github.com/insight2017aquib/MedicinalChemistryFigureDesigner)
 
@@ -14,7 +14,9 @@ MedicinalChemistryFigureDesigner is a **scientific figure platform**, not a cont
 
 - A **Claude Skill** entry point for interactive figure design sessions
 - **Modular documentation** for styles, rules, templates, validation, and prompts
-- A **Figure Specification Language (FSL)** engine (`src/figure_agent/`) for parsing, validating, and serializing figure specifications
+- A **Figure Specification Language (FSL)** engine (`src/figure_agent/fsl/`) for parsing, validating, and serializing figure specifications
+- A **Scientific figure ontology** (`src/figure_agent/ontology/`) for typed entities and relationships
+
 - **Knowledge packs** for domain-specific conventions (user-supplied content only)
 - A **staged pipeline** toward automated rendering, validation, and export
 
@@ -39,11 +41,13 @@ Review-article figures require consistent visual language, structural compliance
 |---------|-----------|--------|
 | v0.1 | Repository scaffold | Complete |
 | v0.2 | Platform architecture | Complete |
-| v0.3 | FSL engine | In progress |
-| v0.4 | Knowledge base | Planned |
-| v0.5 | BioRender integration | Planned |
-| v0.6 | Image generation | Planned |
-| v0.7 | Validation engine | Planned |
+| v0.3 | FSL engine | Complete |
+| v0.4 | Scientific figure ontology | Complete |
+| v0.5 | Figure compilation engine | Planned |
+| v0.6 | Knowledge base | Planned |
+| v0.7 | BioRender integration | Planned |
+| v0.8 | Image generation | Planned |
+| v0.9 | Validation engine | Planned |
 | v1.0 | Scientific Figure Agent | Planned |
 
 See [docs/DevelopmentRoadmap.md](docs/DevelopmentRoadmap.md) for milestone details.
@@ -55,9 +59,9 @@ See [docs/DevelopmentRoadmap.md](docs/DevelopmentRoadmap.md) for milestone detai
 ```mermaid
 flowchart TD
     A[Claude Skill] --> B[Figure Specification Language]
-    B --> C[BioRender MCP]
-    C --> D[Image Generation]
-    D --> E[Scientific Validation]
+    B --> O[Ontology]
+    O --> R[Renderer]
+    R --> E[Scientific Validation]
     E --> F[Publication Export]
 ```
 
@@ -80,11 +84,12 @@ MedicinalChemistryFigureDesigner/
 │   ├── Contributing.md
 │   └── Changelog.md
 │
-├── src/figure_agent/          # Python package (FSL engine)
-│   ├── fsl/                   # Parser, validator, serializer, models
+├── src/figure_agent/          # Python package
+│   ├── fsl/                   # FSL parser, validator, serializer, models
+│   ├── ontology/              # Entity models, relationships, registry
 │   └── core/                  # Constants and shared types
 │
-├── tests/                     # Unit tests for the FSL engine
+├── tests/                     # Unit tests for FSL and ontology
 ├── pyproject.toml             # Python project configuration
 │
 ├── fsl/                       # FSL schema documentation
@@ -139,11 +144,28 @@ MedicinalChemistryFigureDesigner/
 | `src/figure_agent/fsl/validator.py` | Semantic validation (IDs, layout, template refs) |
 | `src/figure_agent/fsl/serializer.py` | YAML/JSON serialization and round-trip |
 
-The FSL engine is a **structured representation layer** — not a rendering engine. It sits between the Claude Skill and future rendering integrations.
+The FSL engine is a **structured representation layer** — not a rendering engine.
+
+### Ontology Layer (v0.4 — executable)
+
+| Component | Purpose |
+|-----------|---------|
+| `ontology/entities.py` | Typed entity hierarchy (`Molecule`, `Protein`, `Label`, etc.) |
+| `ontology/relationships.py` | Relationship types and `OntologyGraph` container |
+| `ontology/registry.py` | Entity type registration, lookup, graph serialization |
+| `ontology/validator.py` | Structural validation (IDs, references, cycles) |
+
+The ontology sits between FSL and future renderers.
+
+```mermaid
+flowchart LR
+    FSL[FSL Document] --> Ontology[Ontology Graph]
+    Ontology --> Renderer[Future Renderer]
+```
 
 ---
 
-## FSL Engine Quick Start
+## Python Package Quick Start
 
 Requires Python 3.12+.
 
@@ -153,7 +175,7 @@ pytest
 ```
 
 ```python
-from figure_agent import load_yaml, parse, to_yaml
+from figure_agent import Cell, Label, Relationship, RelationshipType, load_yaml, parse, to_yaml
 
 figure = parse(load_yaml("examples/minimal_figure.yaml"))
 print(to_yaml(figure))
@@ -165,9 +187,9 @@ print(to_yaml(figure))
 
 | Integration | Milestone | Description |
 |-------------|-----------|-------------|
-| BioRender MCP | v0.5 | Molecular and biological illustration assets via Model Context Protocol |
-| Image generation | v0.6 | FSL-to-render pipeline for raster and vector output |
-| Validation engine | v0.7 | Automated FSL and rule compliance checking |
+| BioRender MCP | v0.6 | Illustration assets via Model Context Protocol |
+| Image generation | v0.7 | Ontology-to-render pipeline for raster and vector output |
+| Validation engine | v0.8 | Automated FSL and rule compliance checking |
 | Publication export | v1.0 | End-to-end packaging with metadata and format compliance |
 
 ---

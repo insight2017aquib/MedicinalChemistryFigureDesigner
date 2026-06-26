@@ -4,10 +4,34 @@ from figure_agent.fsl.models import Figure
 from figure_agent.fsl.parser import load_json, load_yaml, parse, validate_schema
 from figure_agent.fsl.serializer import to_json, to_yaml
 from figure_agent.fsl.validator import FSLValidator
+from figure_agent.ontology import (
+    Cell,
+    EntityRegistry,
+    Label,
+    OntologyGraph,
+    OntologyValidator,
+    Relationship,
+    RelationshipType,
+    create_entity,
+    graph_from_dict,
+    graph_to_json,
+    graph_to_yaml,
+)
 
 __all__ = [
+    "Cell",
+    "EntityRegistry",
     "Figure",
     "FSLValidator",
+    "Label",
+    "OntologyGraph",
+    "OntologyValidator",
+    "Relationship",
+    "RelationshipType",
+    "create_entity",
+    "graph_from_dict",
+    "graph_to_json",
+    "graph_to_yaml",
     "load_json",
     "load_yaml",
     "parse",
@@ -16,4 +40,4 @@ __all__ = [
     "validate_schema",
 ]
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
