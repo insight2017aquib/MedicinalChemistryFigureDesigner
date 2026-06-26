@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 
 SUPPORTED_FSL_VERSIONS: frozenset[str] = frozenset({"0.3.0", "0.2.0-draft"})
 

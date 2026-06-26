@@ -2,7 +2,7 @@
 
 Canonical context for LLMs and coding agents working in this repository.
 
-**Version:** 0.7.0  
+**Version:** 0.8.0
 **Repository:** https://github.com/insight2017aquib/MedicinalChemistryFigureDesigner
 
 ---
@@ -111,7 +111,8 @@ Low-level modules (`compile_figure`, `FigureCompiler`, `SVGRenderer`, etc.) exis
 | Task | Location |
 |------|----------|
 | LLM / agent context (this file) | `PROJECT_CONTEXT.md` |
-| **Generate or validate FSL (LLM specs)** | `specs/` — start at `specs/README.md` |
+| **Generate FSL (Claude reasoning)** | `specs/LLM_WORKFLOW.md`, `specs/ROLE_DEFINITION.md` |
+| **FSL semantics and examples** | `specs/README.md`, `specs/FSL_SPEC.md`, `specs/EXAMPLES.md` |
 | Auto-discovery pointer | `AGENTS.md` |
 | Human overview | `README.md` |
 | Architecture diagrams | `docs/Architecture.md` |
@@ -185,11 +186,12 @@ src/figure_agent/
 
 | Version | Milestone | Status |
 |---------|-----------|--------|
-| v0.7 | Figure Agent API | **Complete** |
-| v0.8 | Knowledge base | Planned |
-| v0.9 | BioRender integration | Planned |
-| v1.0 | Validation engine | Planned |
-| v1.1 | Scientific Figure Agent | Planned |
+| v0.7 | Figure Agent API | Complete |
+| v0.8 | Claude reasoning layer | **Complete** |
+| v0.9 | Knowledge base | Planned |
+| v1.0 | BioRender integration | Planned |
+| v1.1 | Validation engine | Planned |
+| v1.2 | Scientific Figure Agent | Planned |
 
 When implementing new milestones, extend existing contracts — do not break FSL, ontology, compiler, or renderer interfaces without explicit approval.
 

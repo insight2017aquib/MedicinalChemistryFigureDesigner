@@ -28,6 +28,27 @@ Format based on [Keep a Changelog](https://keepachangelog.com/). Versioning alig
 
 ---
 
+## [v0.8.0] — Claude Reasoning Layer
+
+### Added
+
+- `specs/ROLE_DEFINITION.md`, `LLM_WORKFLOW.md`, `DECISION_TREE.md`, `FSL_CHECKLIST.md`, `SELF_VALIDATION.md`, `OUTPUT_CONTRACT.md`, `FAILURE_RECOVERY.md`
+- Machine-readable checklist in `FSL_CHECKLIST.md`
+
+### Changed
+
+- `specs/README.md` — Claude reasoning layer index and reading order
+- `CLAUDE.md` — mandatory workflow routing to `specs/`
+- `AGENTS.md`, `PROJECT_CONTEXT.md`, `README.md` — v0.8 reasoning layer docs
+- Package version `0.8.0`
+
+### Notes
+
+- Claude outputs valid FSL only — no rendering, ontology, or BioRender
+- Workflow targets deterministic FSL passing parser → validator → compiler → renderer
+
+---
+
 ## [v0.7.1] — LLM Specification Layer
 
 ### Added

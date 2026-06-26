@@ -6,21 +6,40 @@ Reasoning specifications for Large Language Models generating valid Figure Speci
 
 It is the semantic layer that teaches Claude and future LLMs how to think about, construct, and validate FSL.
 
-**Synchronized with:** Figure Agent v0.7.0 (`src/figure_agent/fsl/`, `compiler/`, `ontology/`, `renderers/`)
+**Synchronized with:** Figure Agent v0.8.0 (`src/figure_agent/fsl/`, `compiler/`, `ontology/`, `renderers/`)
 
 ---
 
 ## Who Should Read This
 
+- **Claude** (Claude Projects / Skill) — start at [ROLE_DEFINITION.md](./ROLE_DEFINITION.md) and [LLM_WORKFLOW.md](./LLM_WORKFLOW.md)
 - LLMs asked to **generate**, **edit**, or **validate** FSL YAML/JSON
 - Agents using `generate_fsl()` or producing figure specifications by hand
 - Prompt engineers wiring figure-design workflows
 
-Humans maintaining the platform should use `README.md`, `docs/`, and `fsl/` instead.
+Humans maintaining the platform should use [../README.md](../README.md), `docs/`, and `fsl/` instead.
 
 ---
 
-## Document Map
+## Claude Reasoning Layer (v0.8)
+
+Mandatory workflow for deterministic FSL generation:
+
+| Document | Purpose |
+|----------|---------|
+| [ROLE_DEFINITION.md](./ROLE_DEFINITION.md) | What Claude does and does not do |
+| [LLM_WORKFLOW.md](./LLM_WORKFLOW.md) | 9-step reasoning process |
+| [DECISION_TREE.md](./DECISION_TREE.md) | Layout/template decisions |
+| [FSL_CHECKLIST.md](./FSL_CHECKLIST.md) | Pre-output verification (machine-readable) |
+| [SELF_VALIDATION.md](./SELF_VALIDATION.md) | Self-critique before responding |
+| [OUTPUT_CONTRACT.md](./OUTPUT_CONTRACT.md) | Allowed response format |
+| [FAILURE_RECOVERY.md](./FAILURE_RECOVERY.md) | When not to guess |
+
+**Claude entry path:** `ROLE_DEFINITION` → `LLM_WORKFLOW` → `DECISION_TREE` → draft → `FSL_CHECKLIST` + `SELF_VALIDATION` → `OUTPUT_CONTRACT`
+
+---
+
+## FSL Specification Documents (v0.7)
 
 | Document | Purpose |
 |----------|---------|
@@ -33,33 +52,33 @@ Humans maintaining the platform should use `README.md`, `docs/`, and `fsl/` inst
 | [VALIDATION_RULES.md](./VALIDATION_RULES.md) | Four validation stages |
 | [COMMON_ERRORS.md](./COMMON_ERRORS.md) | Mistakes and corrections |
 | [EXAMPLES.md](./EXAMPLES.md) | Valid examples with reasoning |
-| [PROMPTING_GUIDE.md](./PROMPTING_GUIDE.md) | How LLMs should produce FSL |
+| [PROMPTING_GUIDE.md](./PROMPTING_GUIDE.md) | General LLM prompting patterns |
 
 ---
 
-## Reading Order for LLMs
+## Reading Order for Claude
 
-**First time generating FSL:**
+1. [../PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md) — repo boundaries
+2. [ROLE_DEFINITION.md](./ROLE_DEFINITION.md) — Claude's role
+3. [LLM_WORKFLOW.md](./LLM_WORKFLOW.md) — mandatory steps
+4. [DECISION_TREE.md](./DECISION_TREE.md) — layout decisions
+5. [FIGURE_GRAMMAR.md](./FIGURE_GRAMMAR.md) — what FSL is not
+6. [FSL_SPEC.md](./FSL_SPEC.md) + [EXAMPLES.md](./EXAMPLES.md) — semantics and patterns
+7. [FSL_CHECKLIST.md](./FSL_CHECKLIST.md) + [SELF_VALIDATION.md](./SELF_VALIDATION.md) — before output
+8. [OUTPUT_CONTRACT.md](./OUTPUT_CONTRACT.md) — deliverable format
 
-1. [FIGURE_GRAMMAR.md](./FIGURE_GRAMMAR.md) — understand what FSL is and is not
-2. [FSL_SPEC.md](./FSL_SPEC.md) — learn each construct semantically
-3. [EXAMPLES.md](./EXAMPLES.md) — copy patterns from valid documents
-4. [FIELD_REFERENCE.md](./FIELD_REFERENCE.md) — look up individual fields
-5. [VALIDATION_RULES.md](./VALIDATION_RULES.md) — verify before submitting
-6. [COMMON_ERRORS.md](./COMMON_ERRORS.md) — fix failures
-
-**When stuck:** [PROMPTING_GUIDE.md](./PROMPTING_GUIDE.md)
+**On failure:** [FAILURE_RECOVERY.md](./FAILURE_RECOVERY.md) → [COMMON_ERRORS.md](./COMMON_ERRORS.md)
 
 ---
 
 ## Hard Rules for LLMs
 
 1. **FSL describes structure, not rendered graphics.** Panels reference content slots; they do not embed ontology entities, coordinates, or relationships.
-2. **Do not invent biology, chemistry, or journal standards.** Use neutral placeholders (`placeholder`, `shape`, `label`) and repository paths that exist.
+2. **Do not invent biology, chemistry, or journal standards.** Use neutral placeholders and repository paths that exist.
 3. **Do not invent layout types.** Only use values from `KNOWN_LAYOUT_TYPES` in the implementation.
 4. **Every panel `object_ref` must match a `content_slots[].id`.** Every slot must be referenced by at least one panel (compiler orphan check).
 5. **Relationships exist only in the ontology layer.** The compiler creates `contains` and `references` relationships; FSL has no relationship syntax.
-6. **Validate before claiming success.** Run `validate_fsl()` or `parse()` — schema errors and semantic errors are distinct.
+6. **Validate before claiming success.** Apply [FSL_CHECKLIST.md](./FSL_CHECKLIST.md) or run `validate_fsl()` + `compile()`.
 
 ---
 
@@ -67,19 +86,38 @@ Humans maintaining the platform should use `README.md`, `docs/`, and `fsl/` inst
 
 ```mermaid
 flowchart TD
-    README[README.md] --> Grammar[FIGURE_GRAMMAR.md]
-    Grammar --> Spec[FSL_SPEC.md]
-    Spec --> Fields[FIELD_REFERENCE.md]
-    Spec --> Layout[LAYOUT_GUIDE.md]
-    Spec --> Style[STYLING_GUIDE.md]
-    Spec --> Object[OBJECT_MODEL.md]
-    Fields --> Errors[COMMON_ERRORS.md]
-    Layout --> Examples[EXAMPLES.md]
-    Style --> Examples
-    Spec --> Validation[VALIDATION_RULES.md]
+    PC[PROJECT_CONTEXT.md]
+    README[README.md]
+    Role[ROLE_DEFINITION.md]
+    Workflow[LLM_WORKFLOW.md]
+    Tree[DECISION_TREE.md]
+    Check[FSL_CHECKLIST.md]
+    Self[SELF_VALIDATION.md]
+    Contract[OUTPUT_CONTRACT.md]
+    Recovery[FAILURE_RECOVERY.md]
+    Grammar[FIGURE_GRAMMAR.md]
+    Spec[FSL_SPEC.md]
+    Fields[FIELD_REFERENCE.md]
+    Examples[EXAMPLES.md]
+    Errors[COMMON_ERRORS.md]
+    Validation[VALIDATION_RULES.md]
+
+    PC --> Role
+    README --> Role
+    Role --> Workflow
+    Workflow --> Tree
+    Workflow --> Grammar
+    Grammar --> Spec
+    Spec --> Fields
+    Spec --> Examples
+    Workflow --> Check
+    Check --> Self
+    Self --> Contract
+    Self --> Validation
     Validation --> Errors
-    Examples --> Prompting[PROMPTING_GUIDE.md]
-    Errors --> Prompting
+    Contract --> Recovery
+    Recovery --> Errors
+    Recovery --> Spec
 ```
 
 ---
@@ -104,7 +142,8 @@ When in doubt, derive behavior from these source files — do not guess:
 
 | Resource | Audience |
 |----------|----------|
-| `PROJECT_CONTEXT.md` | General agent context for the whole repo |
-| `README.md` | Human project overview |
+| [../PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md) | General agent context for the whole repo |
+| [../README.md](../README.md) | Human project overview |
+| [../CLAUDE.md](../CLAUDE.md) | Claude Skill entry point |
 | `src/figure_agent/api/` | Python API for validate/compile/render |
 | `fsl/schema.yaml` | Schema skeleton (not a substitute for semantics) |

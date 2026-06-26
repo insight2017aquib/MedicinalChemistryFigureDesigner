@@ -31,10 +31,11 @@ Track planned milestones from repository scaffold through full Scientific Figure
 | v0.5 | Figure compilation engine | Complete | FSL → ontology graph transformation |
 | v0.6 | Minimal SVG renderer | Complete | Ontology graph → monochrome SVG proof-of-concept |
 | v0.7 | Figure Agent API | Complete | Stable public API for LLMs and automation tools |
-| v0.8 | Knowledge base | Planned | Populated knowledge packs with user-supplied domain content |
-| v0.9 | BioRender integration | Planned | MCP connector and `BioRenderRenderer` backend |
-| v1.0 | Validation engine | Planned | Automated validation against rules and FSL schema |
-| v1.1 | Scientific Figure Agent | Planned | End-to-end agent with full pipeline integration |
+| v0.8 | Claude reasoning layer | Complete | Deterministic FSL workflow for Claude Projects |
+| v0.9 | Knowledge base | Planned | Populated knowledge packs with user-supplied domain content |
+| v1.0 | BioRender integration | Planned | MCP connector and `BioRenderRenderer` backend |
+| v1.1 | Validation engine | Planned | Automated validation against rules and FSL schema |
+| v1.2 | Scientific Figure Agent | Planned | End-to-end agent with full pipeline integration |
 
 ---
 
@@ -84,24 +85,35 @@ Track planned milestones from repository scaffold through full Scientific Figure
 - [x] Unit tests: valid/invalid FSL, compile, render, export, error handling
 - [x] `specs/` — LLM specification layer for FSL generation (semantics, grammar, examples, prompting)
 
-### v0.8 — Knowledge Base (Planned)
+### v0.8 — Claude Reasoning Layer (Complete)
+
+- [x] `specs/ROLE_DEFINITION.md` — Claude responsibilities and boundaries
+- [x] `specs/LLM_WORKFLOW.md` — mandatory 9-step FSL reasoning workflow
+- [x] `specs/DECISION_TREE.md` — layout/template decision tree
+- [x] `specs/FSL_CHECKLIST.md` — machine-readable pre-output checklist
+- [x] `specs/SELF_VALIDATION.md` — self-critique protocol
+- [x] `specs/OUTPUT_CONTRACT.md` — allowed response format
+- [x] `specs/FAILURE_RECOVERY.md` — no-guess failure handling
+- [x] `CLAUDE.md` — routes Claude Skill to reasoning layer
+
+### v0.9 — Knowledge Base (Planned)
 
 - [ ] Knowledge pack schema and metadata format
 - [ ] User-supplied content ingestion guidelines
 - [ ] Integration hooks in `prompts/` and `fsl/`
 
-### v0.9 — BioRender Integration (Planned)
+### v1.0 — BioRender Integration (Planned)
 
 - [ ] MCP server configuration
 - [ ] `BioRenderRenderer` registered via `register_renderer("biorender", ...)`
 - [ ] Asset reference mapping in ontology entities
 
-### v1.0 — Validation Engine (Planned)
+### v1.1 — Validation Engine (Planned)
 
 - [ ] Automated checklist runner
 - [ ] Extended FSL and rule compliance reporting
 
-### v1.1 — Scientific Figure Agent (Planned)
+### v1.2 — Scientific Figure Agent (Planned)
 
 - [ ] Full pipeline orchestration via public API
 - [ ] End-to-end session workflow (brief → FSL → ontology → render → validate → export)

@@ -2,26 +2,50 @@
 
 ## Shared Context
 
-**Read [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md) first.** It contains project identity, constraints, the public API, module routing, and build commands for all agents.
+**Read [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md) first** for repo identity and boundaries.
 
-This file adds Claude Skill–specific routing only.
+**For FSL generation, follow the Claude Reasoning Layer** — do not guess FSL syntax:
+
+1. [specs/ROLE_DEFINITION.md](./specs/ROLE_DEFINITION.md) — your responsibilities
+2. [specs/LLM_WORKFLOW.md](./specs/LLM_WORKFLOW.md) — mandatory 9-step workflow
+3. [specs/DECISION_TREE.md](./specs/DECISION_TREE.md) — layout/template decisions
+4. [specs/FSL_CHECKLIST.md](./specs/FSL_CHECKLIST.md) + [specs/SELF_VALIDATION.md](./specs/SELF_VALIDATION.md) — before every output
+5. [specs/OUTPUT_CONTRACT.md](./specs/OUTPUT_CONTRACT.md) — what to deliver
+
+Full spec index: [specs/README.md](./specs/README.md)
 
 ---
 
 ## Skill Identity
 
 - **Name:** MedicinalChemistryFigureDesigner
-- **Purpose:** Interactive figure design for medicinal chemistry and molecular biology review articles
-- **Trigger phrases:** "design a figure", "create FSL", "compile figure", "render SVG", "figure specification"
+- **Purpose:** Generate valid FSL figure specifications from user briefs
+- **Trigger phrases:** "design a figure", "create FSL", "figure specification", "generate figure YAML"
 
 ---
 
-## Behavioral Constraints
+## Claude IS / IS NOT
 
-- Never invent biological facts, chemical structures, or journal guidelines
-- Route user-supplied content only; escalate when domain packs in `knowledge/` are empty
-- Use the public API (`figure_agent.compile`, `render`, `export`) for pipeline operations
-- Output traceable FSL specifications, not ad-hoc figure descriptions
+| Claude IS | Claude IS NOT |
+|-----------|---------------|
+| Understanding requests, asking clarifying questions | Rendering SVG or running BioRender |
+| Selecting templates, generating valid FSL | Emitting ontology graphs or compiling |
+| Explaining design decisions, writing captions | Modifying Figure Agent code (unless asked) |
+
+Detail: [specs/ROLE_DEFINITION.md](./specs/ROLE_DEFINITION.md)
+
+---
+
+## Mandatory Workflow
+
+Follow [specs/LLM_WORKFLOW.md](./specs/LLM_WORKFLOW.md) for every figure request:
+
+```
+Understand request → Determine figure type → Plan panels → Plan slots
+→ Read FSL specs → Draft FSL → Validate → Correct → Output valid FSL only
+```
+
+Never skip validation. Never output invalid FSL.
 
 ---
 
@@ -29,36 +53,33 @@ This file adds Claude Skill–specific routing only.
 
 | User task | Consult |
 |-----------|---------|
-| End-to-end workflow | [instructions.md](./instructions.md) |
-| Initial brief | [prompts/initial-brief.md](./prompts/initial-brief.md) |
-| Layout generation | [prompts/layout-generation.md](./prompts/layout-generation.md) |
-| Style selection | [styles/](./styles/) |
-| Template selection | [templates/](./templates/) |
-| Rule application | [rules/](./rules/) |
-| Pre-export checks | [validation/](./validation/) |
-| Revision pass | [prompts/revision-pass.md](./prompts/revision-pass.md) |
-| Export instructions | [prompts/export-instructions.md](./prompts/export-instructions.md) |
-| FSL / API / rendering | [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md) |
+| **Generate FSL** | [specs/LLM_WORKFLOW.md](./specs/LLM_WORKFLOW.md), [specs/EXAMPLES.md](./specs/EXAMPLES.md) |
+| Layout decision | [specs/DECISION_TREE.md](./specs/DECISION_TREE.md) |
+| Field lookup | [specs/FIELD_REFERENCE.md](./specs/FIELD_REFERENCE.md) |
+| Validation failure | [specs/COMMON_ERRORS.md](./specs/COMMON_ERRORS.md) |
+| Cannot proceed | [specs/FAILURE_RECOVERY.md](./specs/FAILURE_RECOVERY.md) |
+| End-to-end human workflow | [instructions.md](./instructions.md) |
+| Prompt templates | [prompts/](./prompts/) |
+| Style/template docs | [styles/](./styles/), [templates/](./templates/) |
 
 ---
 
-## Default Workflow
+## Output Contract
 
-1. Intake brief → `prompts/initial-brief.md`
-2. Select template and styles → `templates/`, `styles/`
-3. Generate FSL → `generate_fsl()` or manual YAML in `examples/`
-4. Validate and compile → `validate_fsl()`, `compile()`
-5. Render preview → `render_svg()` or `export()`
-6. Apply rules and validation → `rules/`, `validation/`
-7. Revision loop → `prompts/revision-pass.md`
-8. Export → `prompts/export-instructions.md`
+Per [specs/OUTPUT_CONTRACT.md](./specs/OUTPUT_CONTRACT.md):
+
+1. **Valid FSL YAML** (always)
+2. Optional explanation (brief)
+3. Optional caption (if requested)
+
+Never output ontology, SVG, or renderer code in figure-generation responses.
 
 ---
 
 ## Fallback Behavior
 
-When a module is incomplete (placeholder Markdown):
+When requirements are incomplete:
 
-- State clearly what is defined vs pending
-- Do not fill gaps with fabricated scientific or journal content
-- Offer to proceed with neutral placeholders (as in `examples/minimal_figure.yaml`)
+- **Do not guess** — [specs/FAILURE_RECOVERY.md](./specs/FAILURE_RECOVERY.md)
+- Offer smallest valid partial FSL from [specs/EXAMPLES.md](./specs/EXAMPLES.md) Example 1 when appropriate
+- Do not fabricate scientific or journal content

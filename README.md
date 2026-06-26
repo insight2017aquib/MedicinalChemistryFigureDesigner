@@ -2,7 +2,7 @@
 
 A modular platform for designing publication-quality scientific figures for medicinal chemistry and molecular biology review articles. Built as a Claude Skill with a staged pipeline from user brief to validated, export-ready figures.
 
-**Current status:** v0.7 — Figure Agent API (stable interface for any LLM or tool)
+**Current status:** v0.8 — Claude reasoning layer (deterministic FSL generation)
 
 **Repository:** [github.com/insight2017aquib/MedicinalChemistryFigureDesigner](https://github.com/insight2017aquib/MedicinalChemistryFigureDesigner)
 
@@ -48,10 +48,11 @@ Review-article figures require consistent visual language, structural compliance
 | v0.5 | Figure compilation engine | Complete |
 | v0.6 | Minimal SVG renderer | Complete |
 | v0.7 | Figure Agent API | Complete |
-| v0.8 | Knowledge base | Planned |
-| v0.9 | BioRender integration | Planned |
-| v1.0 | Validation engine | Planned |
-| v1.1 | Scientific Figure Agent | Planned |
+| v0.8 | Claude reasoning layer | Complete |
+| v0.9 | Knowledge base | Planned |
+| v1.0 | BioRender integration | Planned |
+| v1.1 | Validation engine | Planned |
+| v1.2 | Scientific Figure Agent | Planned |
 
 See [docs/DevelopmentRoadmap.md](docs/DevelopmentRoadmap.md) for milestone details.
 
@@ -85,7 +86,7 @@ MedicinalChemistryFigureDesigner/
 ├── README.md                  # Project overview (this file)
 ├── PROJECT_CONTEXT.md         # Canonical context for LLMs and coding agents
 ├── AGENTS.md                  # Auto-discovery pointer (Cursor, Grok, Codex, etc.)
-├── specs/                     # LLM reasoning specs for FSL generation
+├── specs/                     # LLM specs + Claude reasoning layer (v0.8)
 ├── CLAUDE.md                  # Claude Skill entry point
 ├── instructions.md            # End-to-end workflow
 │
@@ -355,7 +356,8 @@ Validation and compile/render failures return structured responses by default. P
 |------|---------|
 | [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | **Primary context** — identity, constraints, public API, module routing, build commands |
 | [AGENTS.md](AGENTS.md) | **Auto-discovery** — loaded by Cursor, Grok, Codex, VS Code, and other agents at session start |
-| [CLAUDE.md](CLAUDE.md) | Claude Skill–specific workflow routing |
+| [CLAUDE.md](CLAUDE.md) | Claude Skill entry — routes to `specs/` reasoning layer |
+| [specs/LLM_WORKFLOW.md](specs/LLM_WORKFLOW.md) | **FSL generation workflow** — mandatory 9-step process for Claude |
 
 Agents should read `PROJECT_CONTEXT.md` before making changes. `AGENTS.md` points to it automatically.
 

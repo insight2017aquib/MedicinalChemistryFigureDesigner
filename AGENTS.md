@@ -21,6 +21,14 @@ python scripts/render_example.py
 
 Full details: [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)
 
-## Generating FSL
+## Generating FSL (Claude Reasoning Layer)
 
-If asked to create or edit Figure Specification Language documents, read [specs/README.md](./specs/README.md) first, then [specs/PROMPTING_GUIDE.md](./specs/PROMPTING_GUIDE.md) and [specs/EXAMPLES.md](./specs/EXAMPLES.md).
+If asked to create or edit FSL, follow this path — do not guess syntax:
+
+1. [specs/ROLE_DEFINITION.md](./specs/ROLE_DEFINITION.md)
+2. [specs/LLM_WORKFLOW.md](./specs/LLM_WORKFLOW.md)
+3. [specs/DECISION_TREE.md](./specs/DECISION_TREE.md)
+4. [specs/FSL_CHECKLIST.md](./specs/FSL_CHECKLIST.md) + [specs/SELF_VALIDATION.md](./specs/SELF_VALIDATION.md)
+5. [specs/OUTPUT_CONTRACT.md](./specs/OUTPUT_CONTRACT.md)
+
+Reference: [specs/FSL_SPEC.md](./specs/FSL_SPEC.md), [specs/EXAMPLES.md](./specs/EXAMPLES.md), [specs/COMMON_ERRORS.md](./specs/COMMON_ERRORS.md)
